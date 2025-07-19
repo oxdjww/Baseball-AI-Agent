@@ -9,6 +9,7 @@ on:
 jobs:
   docker_build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,8 +29,8 @@ jobs:
       - name: Build & push backend image
         uses: docker/build-push-action@v4
         with:
-          context: .
-          file: ./backend/Dockerfile
+          context: ./backend
+          file: Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
