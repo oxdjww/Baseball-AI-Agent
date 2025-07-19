@@ -53,8 +53,8 @@ public class BatchScheduler {
                         .toJobParameters());
     }
 
-    // 실시간 모니터링 (1분마다)
-    @Scheduled(fixedDelay = 60_000)
+    // 실시간 모니터링 (5분마다)
+    @Scheduled(fixedDelay = 300_000) // 5분
     public void runRealTimeAlert() throws Exception {
         jobLauncher.run(realTimeAlertJob,
                 new JobParametersBuilder()
