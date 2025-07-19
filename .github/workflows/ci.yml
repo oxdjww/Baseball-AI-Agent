@@ -29,8 +29,8 @@ jobs:
       - name: Build & push backend image
         uses: docker/build-push-action@v4
         with:
-          context: .                    # ← 리포지토리 루트
-          file: backend/Dockerfile      # ← 루트 기준 경로
+          context: ./backend       # ← 컨텍스트를 backend 폴더로
+          file: Dockerfile         # ← backend/Dockerfile이 아니라, 컨텍스트 내부의 Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
