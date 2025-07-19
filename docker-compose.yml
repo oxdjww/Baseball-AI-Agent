@@ -16,6 +16,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    image: oxdjww/baa-backend:latest
     depends_on:
       - db
     env_file:

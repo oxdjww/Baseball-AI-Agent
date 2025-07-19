@@ -27,9 +27,9 @@ jobs:
           # backend 디렉터리를 컨텍스트로 지정
           docker build \
             -f backend/Dockerfile \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }} \
-            -t ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/baa-backend:${{ github.sha }} \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/baa-backend:latest \
             backend
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/baa-backend:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/baa-backend:latest
 
