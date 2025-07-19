@@ -11,14 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up QEMU (for cross-platform build)
         uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
@@ -27,12 +23,13 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build & push backend image
-        uses: docker/build-push-action@v4
-        with:
-          context: .                    # ← 레포 루트 전체를 컨텍스트로 삼고
-          file: ./backend/Dockerfile      # ← 레포 루트 기준 경로로 Dockerfile 지정
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
+        run: |
+          # backend 디렉터리를 컨텍스트로 지정
+          docker build \
+            -f backend/Dockerfile \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }} \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest \
+            backend
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
 
