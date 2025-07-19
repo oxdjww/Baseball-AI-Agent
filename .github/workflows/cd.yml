@@ -32,5 +32,5 @@ jobs:
 
             # 최신 이미지 풀링 및 컨테이너 재시작
             docker-compose pull
-            docker-compose up -d
+            docker-compose up -d --no-build
           EOF
