@@ -16,9 +16,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class BatchConfig {
 
     @Bean
-    public Step gameAnalysisStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    public Step gameAnalysisStep(JobRepository jobRepository, PlatformTransactionManager tm) {
         return new StepBuilder("gameAnalysisStep", jobRepository)
-                .tasklet(new GameAnalysisTasklet(), transactionManager)
+                .tasklet(new GameAnalysisTasklet(), tm)
                 .build();
     }
 
@@ -30,9 +30,9 @@ public class BatchConfig {
     }
 
     @Bean
-    public Step rainAlertStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    public Step rainAlertStep(JobRepository jobRepository, PlatformTransactionManager tm) {
         return new StepBuilder("rainAlertStep", jobRepository)
-                .tasklet(new RainAlertTasklet(), transactionManager)
+                .tasklet(new RainAlertTasklet(), tm)
                 .build();
     }
 
@@ -44,9 +44,13 @@ public class BatchConfig {
     }
 
     @Bean
-    public Step realTimeAlertStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    public Step realTimeAlertStep(
+            JobRepository jobRepository,
+            PlatformTransactionManager tm,
+            RealTimeAlertTasklet realTimeAlertTasklet
+    ) {
         return new StepBuilder("realTimeAlertStep", jobRepository)
-                .tasklet(new RealTimeAlertTasklet(), transactionManager)
+                .tasklet(realTimeAlertTasklet, tm)
                 .build();
     }
 
