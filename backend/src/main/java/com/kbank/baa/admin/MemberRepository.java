@@ -2,4 +2,9 @@ package com.kbank.baa.admin;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface MemberRepository extends JpaRepository<Member, Long> {}
+import java.util.List;
+
+public interface MemberRepository extends JpaRepository<Member, Long> {
+
+    List<Member> findByNotifyRealTimeAlertTrue();
+}

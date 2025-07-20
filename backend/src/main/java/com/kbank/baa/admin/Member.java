@@ -1,10 +1,7 @@
 package com.kbank.baa.admin;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -19,7 +16,10 @@ public class Member {
     private Long id;
 
     private String name;
-    private String supportTeam;
+
+    @Enumerated(EnumType.STRING)
+    private Team supportTeam;
+
     private String telegramId;
 
     /**

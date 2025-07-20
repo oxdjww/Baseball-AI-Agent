@@ -2,40 +2,56 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>회원 등록/수정</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
 <div class="container mt-3">
     <h2 th:text="${member.id == null ? '회원 등록' : '회원 수정'}"></h2>
-    <!-- [여기] 고쳤습니다 -->
-    <form th:action="@{${member.id == null} ? '/admin/members' : '/admin/members/' + ${member.id} + '/edit'}" method="post">
+    <form th:action="@{${member.id == null} ? '/admin/members' : '/admin/members/' + ${member.id} + '/edit'}"
+          method="post" th:object="${member}">
         <div class="mb-2">
             <label>이름</label>
-            <input type="text" name="name" class="form-control" th:value="${member.name}">
+            <input type="text" th:field="*{name}" class="form-control"/>
         </div>
+
+        <!-- ★ 여기부터 토글 버튼 그룹 -->
         <div class="mb-2">
-            <label>응원 팀</label>
-            <input type="text" name="supportTeam" class="form-control" th:value="${member.supportTeam}">
+            <label class="form-label d-block">응원 팀</label>
+            <div class="btn-group mt-2" role="group" aria-label="Team toggles">
+                <th:block th:each="team : ${teams}">
+                    <input type="radio"
+                           class="btn-check"
+                           th:id="${'team-' + team.name()}"
+                           th:field="*{supportTeam}"
+                           th:value="${team.name()}"
+                           autocomplete="off"/>
+                    <label class="btn btn-outline-primary"
+                           th:for="${'team-' + team.name()}"
+                           th:text="${team.displayName}"></label>
+                </th:block>
+            </div>
         </div>
+
+        <!-- ★ 토글 버튼 그룹 끝 -->
+
         <div class="mb-2">
             <label>텔레그램ID</label>
-            <input type="text" name="telegramId" class="form-control" th:value="${member.telegramId}">
+            <input type="text" th:field="*{telegramId}" class="form-control"/>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="notifyGameAnalysis"
-                   th:checked="${member.notifyGameAnalysis}">
+            <input class="form-check-input" type="checkbox" th:field="*{notifyGameAnalysis}"/>
             <label class="form-check-label">경기 분석 알림 받기</label>
         </div>
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="notifyRainAlert"
-                   th:checked="${member.notifyRainAlert}">
+            <input class="form-check-input" type="checkbox" th:field="*{notifyRainAlert}"/>
             <label class="form-check-label">우천 알림 받기</label>
         </div>
         <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" name="notifyRealTimeAlert"
-                   th:checked="${member.notifyRealTimeAlert}">
+            <input class="form-check-input" type="checkbox" th:field="*{notifyRealTimeAlert}"/>
             <label class="form-check-label">실시간 알림 받기</label>
         </div>
+
         <button type="submit" class="btn btn-success">저장</button>
         <a th:href="@{/admin/members}" class="btn btn-secondary">취소</a>
     </form>

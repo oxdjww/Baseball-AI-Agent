@@ -7,7 +7,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class TelegramJobListener implements JobExecutionListener {
     private final TelegramService bot;
-    public TelegramJobListener(TelegramService bot) { this.bot = bot; }
+
+    public TelegramJobListener(TelegramService bot) {
+        this.bot = bot;
+    }
 
     @Override
     public void beforeJob(JobExecution jobExecution) {

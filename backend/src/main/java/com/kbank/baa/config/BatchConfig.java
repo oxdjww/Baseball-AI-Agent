@@ -1,10 +1,11 @@
 package com.kbank.baa.config;
 
-import com.kbank.baa.batch.GameAnalysisTasklet;
-import com.kbank.baa.batch.RainAlertTasklet;
-import com.kbank.baa.batch.RealTimeAlertTasklet;
+import com.kbank.baa.batch.tasklet.GameAnalysisTasklet;
+import com.kbank.baa.batch.tasklet.RainAlertTasklet;
+import com.kbank.baa.batch.tasklet.RealTimeAlertTasklet;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
@@ -12,6 +13,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+
+@EnableBatchProcessing
 @Configuration
 public class BatchConfig {
 
