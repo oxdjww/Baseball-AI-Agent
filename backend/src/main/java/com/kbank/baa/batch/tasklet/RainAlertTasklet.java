@@ -27,6 +27,7 @@ public class RainAlertTasklet implements Tasklet {
     @Override
     public RepeatStatus execute(StepContribution contribution,
                                 ChunkContext chunkContext) {
+        // 실제 배치 로직에서 executeForGame() 을 호출하는 부분이 있다면 그대로 두시고
         return RepeatStatus.FINISHED;
     }
 
@@ -38,39 +39,41 @@ public class RainAlertTasklet implements Tasklet {
     public void executeForGame(ScheduledGame game,
                                int hoursBefore,
                                double thresholdMm) {
-        String teamCode = game.getHomeTeamCode();
-        double rain = rainfallService.getRainfallByTeam(teamCode);
+        Team team = Team.valueOf(game.getHomeTeamCode());
+        double rain = rainfallService.getRainfallByTeam(team.name());
 
         log.info("##### checkRain: game={} {}h before, rain={}mm, threshold={}mm",
                 game.getGameId(), hoursBefore, rain, thresholdMm);
 
-        // 구단 서포터 조회
-        List<Member> members = memberRepo.findBySupportTeam(Team.valueOf(teamCode));
+        // 1) 우천 알림 켠 멤버만 조회
+        List<Member> members = memberRepo.findBySupportTeamAndNotifyRainAlertTrue(team);
 
+        // 2) 강수량 비교 후 메시지 발송
+        String text;
         if (rain >= thresholdMm) {
-            // 비가 올 가능성
-            String text = String.format(
+            text = String.format(
                     "[%s] %s vs %s: %dh 전 강수량 %.1fmm → 우천취소 가능성 있어요! ☔",
                     game.getGameDateTime().toLocalTime(),
                     game.getAwayTeamCode(), game.getHomeTeamCode(),
                     hoursBefore, rain
             );
-            members.forEach(m -> {
-                telegram.sendMessage(m.getTelegramId(), text);
-                log.info("##### → rain alert sent to {} ({})", m.getName(), m.getTelegramId());
-            });
         } else {
-            // 비 걱정 없으니 야구 즐기세요!
-            String text = String.format(
+            text = String.format(
                     "[%s] %s vs %s: %dh 전 강수량 %.1fmm → 비 걱정 없어요! 즐겁게 관전하세요! ⚾",
                     game.getGameDateTime().toLocalTime(),
                     game.getAwayTeamCode(), game.getHomeTeamCode(),
                     hoursBefore, rain
             );
-            members.forEach(m -> {
-                telegram.sendMessage(m.getTelegramId(), text);
-                log.info("##### → no-rain message sent to {} ({})", m.getName(), m.getTelegramId());
-            });
         }
+
+        // 3) 메시지 전송 & 로깅
+        members.forEach(m -> {
+            try {
+                telegram.sendMessage(m.getTelegramId(), text);
+                log.info("##### → rain alert sent to {} ({})", m.getName(), m.getTelegramId());
+            } catch (Exception e) {
+                log.error("##### {}님에게 우천 알림 전송 실패: {}", m.getName(), e.getMessage(), e);
+            }
+        });
     }
 }
