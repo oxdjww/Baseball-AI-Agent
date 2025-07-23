@@ -20,3 +20,7 @@ spring:
 telegram:
   bot-token: ${TELEGRAM_BOT_TOKEN}
   chat-id: ${TELEGRAM_CHAT_ID}
+
+kma:
+  api:
+    key: ${KMA_API_KEY}

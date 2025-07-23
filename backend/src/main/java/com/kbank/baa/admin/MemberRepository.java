@@ -7,4 +7,6 @@ import java.util.List;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
     List<Member> findByNotifyRealTimeAlertTrue();
+
+    List<Member> findBySupportTeam(Team supportTeam);
 }

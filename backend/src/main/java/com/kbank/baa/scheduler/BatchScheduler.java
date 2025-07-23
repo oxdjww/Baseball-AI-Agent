@@ -33,25 +33,25 @@ public class BatchScheduler {
                         .toJobParameters());
     }
 
-    // 경기 3시간 전 우천 알림
-    @Scheduled(cron = "0 0  * * * *")  // TODO: 동적 cron 으로 변경 가능
-    public void runRainAlert3h() throws Exception {
-        jobLauncher.run(rainAlertJob,
-                new JobParametersBuilder()
-                        .addString("type", "3h")
-                        .addLong("time", System.currentTimeMillis())
-                        .toJobParameters());
-    }
-
-    // 경기 1시간 전 우천 알림
-    @Scheduled(cron = "0 0 * * * *")   // TODO: 동적 cron 으로 변경 가능
-    public void runRainAlert1h() throws Exception {
-        jobLauncher.run(rainAlertJob,
-                new JobParametersBuilder()
-                        .addString("type", "1h")
-                        .addLong("time", System.currentTimeMillis())
-                        .toJobParameters());
-    }
+//    // 경기 3시간 전 우천 알림
+//    @Scheduled(cron = "0 0  * * * *")  // TODO: 동적 cron 으로 변경 가능
+//    public void runRainAlert3h() throws Exception {
+//        jobLauncher.run(rainAlertJob,
+//                new JobParametersBuilder()
+//                        .addString("type", "3h")
+//                        .addLong("time", System.currentTimeMillis())
+//                        .toJobParameters());
+//    }
+//
+//    // 경기 1시간 전 우천 알림
+//    @Scheduled(cron = "0 0 * * * *")   // TODO: 동적 cron 으로 변경 가능
+//    public void runRainAlert1h() throws Exception {
+//        jobLauncher.run(rainAlertJob,
+//                new JobParametersBuilder()
+//                        .addString("type", "1h")
+//                        .addLong("time", System.currentTimeMillis())
+//                        .toJobParameters());
+//    }
 
     // TODO: AI 분석 Job 추가 필요
 
