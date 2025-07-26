@@ -1,11 +1,9 @@
+// RealTimeAlertTasklet.java
 package com.kbank.baa.batch.tasklet;
 
 import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.MemberRepository;
-import com.kbank.baa.sports.GameMessageFormatter;
-import com.kbank.baa.sports.RealtimeGameInfo;
-import com.kbank.baa.sports.ScheduledGame;
-import com.kbank.baa.sports.SportsApiClient;
+import com.kbank.baa.sports.*;
 import com.kbank.baa.telegram.TelegramService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,56 +23,81 @@ public class RealTimeAlertTasklet implements Tasklet {
     private final SportsApiClient apiClient;
     private final MemberRepository memberRepo;
     private final GameMessageFormatter formatter;
+    private final ScoreTracker tracker;
     private final TelegramService telegram;
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-        LocalDate today = LocalDate.now();
+        log.info("===== RealTimeAlertTasklet 실행 시작 =====");
 
-        // 1) 오늘 일정 조회
+        LocalDate today = LocalDate.now();  // 오늘 날짜
+        // 1) 오늘 경기 일정 조회
         List<ScheduledGame> schedules = apiClient.fetchScheduledGames(today, today);
+        log.debug("오늘 경기 일정 개수: {}", schedules.size());
 
         // 2) 알림 대상 멤버 조회
         List<Member> members = memberRepo.findByNotifyRealTimeAlertTrue();
+        log.debug("실시간 알림 대상 멤버 수: {}", members.size());
 
-        // 3) 멤버별로 처리
+        // 3) 멤버별 반복 처리
         for (Member m : members) {
-            String team = m.getSupportTeam().name();
+            String teamCode = m.getSupportTeam().name();
+            boolean supportHome = teamCode.equalsIgnoreCase("HOME"); // 실제 코드에 맞게 수정
+            log.info(">> 멤버 처리: {} (응원팀: {})", m.getName(), teamCode);
 
-            schedules.stream()
-                    .filter(s -> team.equals(s.getHomeTeamCode()) || team.equals(s.getAwayTeamCode()))
-                    .forEach(s -> {
-                        try {
-                            RealtimeGameInfo info = apiClient.fetchGameInfo(s.getGameId());
-                            String status = info.getStatusCode();
+            // 4) 경기별 반복 처리
+            for (ScheduledGame s : schedules) {
+                // 응원팀과 관련 없는 경기는 스킵
+                if (!(teamCode.equals(s.getHomeTeamCode()) || teamCode.equals(s.getAwayTeamCode()))) {
+                    log.trace("경기 제외: {} 은(는) 응원팀 경기가 아님", s.getGameId());
+                    continue;
+                }
+                log.debug(">>> 경기 조회: {} ({} vs {})", s.getGameId(), s.getAwayTeamCode(), s.getHomeTeamCode());
 
-                            // 경기 시작 전/후 상태 로깅
-                            if (!"STARTED".equals(status)) {
-                                log.info("##### STATUS: {}", status);
-                                log.info("##### [{}]{} vs {} #####",
-                                        info.getGameId(), info.getAwayTeamCode(), info.getHomeTeamCode());
-                                if ("BEFORE".equals(status) || "READY".equals(status)) {
-                                    log.info("##### 경기 시작 예정: {} #####", info.getGameDateTime());
-                                } else if ("ENDED".equals(status) || "RESULT".equals(status)) {
-                                    log.info("##### 경기 종료: WINNER {} #####", info.getWinner());
-                                }
-                                return;
-                            }
+                try {
+                    // API 호출로 실시간 정보 조회
+                    RealtimeGameInfo info = apiClient.fetchGameInfo(s.getGameId());
+                    String status = info.getStatusCode();
+                    log.debug(">>> 경기 상태: {}", status);
 
-                            log.info("##### [{}]{} vs {} 경기중! 메시지 전송 #####",
-                                    info.getGameId(), info.getAwayTeamCode(), info.getHomeTeamCode());
+                    // 경기 중이 아닐 땐 무시
+                    if (!"STARTED".equals(status)) {
+                        log.info(">>> 경기 미진행 상태, 스킵: {}", status);
+                        continue;
+                    }
 
-                            String text = formatter.format(m, info);
-                            telegram.sendMessage(m.getTelegramId(), text);
+                    // 현재/이전 스코어 비교
+                    int currHome = info.getHomeScore();
+                    int currAway = info.getAwayScore();
+                    Integer prevHome = tracker.getPrevHome(s.getGameId());
+                    Integer prevAway = tracker.getPrevAway(s.getGameId());
+                    log.debug(">>> 이전 스코어: {}:{}  →  현재 스코어: {}:{}", prevHome, prevAway, currHome, currAway);
 
-                        } catch (Exception e) {
-                            // 개별 경기 또는 메시지 전송 실패 시 로깅 후 계속 진행
-                            log.error("##### 멤버={}({}) 처리 중 오류 발생: {}",
-                                    m.getName(), m.getTelegramId(), e.getMessage(), e);
+                    if (prevHome != null && prevAway != null) {
+                        boolean wasLosing = supportHome ? prevHome < prevAway : prevAway < prevHome;
+                        boolean wasTied = prevHome.equals(prevAway);
+                        boolean nowLeading = supportHome ? currHome > currAway : currAway > currHome;
+                        log.debug(">>> wasLosing={}, wasTied={}, nowLeading={}", wasLosing, wasTied, nowLeading);
+
+                        // ‘지고 있다→역전’ 또는 ‘동점→역전’ 감지 시
+                        if ((wasLosing || wasTied) && nowLeading) {
+                            log.info("+++ 역전 감지! 메시지 전송 시작 +++");
+                            String msg = formatter.formatReversal(m, info);
+                            telegram.sendMessage(m.getTelegramId(), msg);
+                            log.info("+++ 메시지 전송 완료 to {} +++", m.getTelegramId());
                         }
-                    });
+                    }
+
+                    // 5) 상태 업데이트
+                    tracker.update(s.getGameId(), currHome, currAway);
+
+                } catch (Exception e) {
+                    log.error("##### 멤버={} 처리 중 오류 발생: {}", m.getName(), e.getMessage(), e);
+                }
+            }
         }
 
+        log.info("===== RealTimeAlertTasklet 실행 종료 =====");
         return RepeatStatus.FINISHED;
     }
 }

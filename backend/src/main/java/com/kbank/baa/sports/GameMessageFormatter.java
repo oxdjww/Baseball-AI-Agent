@@ -40,4 +40,16 @@ public class GameMessageFormatter {
                 g.getAwayScore()
         );
     }
+
+    /**
+     * 역전 감지 시 보낼 메시지
+     */
+    public String formatReversal(Member member, RealtimeGameInfo g) {
+        String team = member.getSupportTeam().name();
+        boolean isHome = team.equals(g.getHomeTeamCode());
+        int you = isHome ? g.getHomeScore() : g.getAwayScore();
+        int opp = isHome ? g.getAwayScore() : g.getHomeScore();
+        return String.format("%s님, 축하합니다! 🎉\n응원팀 %s가 역전에 성공했어요! 현재 점수 %d:%d",
+                member.getName(), team, you, opp);
+    }
 }
