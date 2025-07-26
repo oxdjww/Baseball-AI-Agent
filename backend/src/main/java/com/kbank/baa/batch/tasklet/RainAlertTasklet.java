@@ -53,6 +53,7 @@ public class RainAlertTasklet implements Tasklet {
         // 2) 강수량 비교 후 메시지 발송
         String text;
         if (rain >= thresholdMm) {
+            log.info("rain >= thresholdMm, [{}]", rain);
             text = String.format(
                     "[%s] %s vs %s: %dh 전 강수량 %.1fmm → 우천취소 가능성 있어요! ☔",
                     game.getGameDateTime().toLocalTime(),
@@ -60,6 +61,7 @@ public class RainAlertTasklet implements Tasklet {
                     hoursBefore, rain
             );
         } else {
+            log.info("rain < thresholdMm, [{}]", rain);
             text = String.format(
                     "[%s] %s vs %s: %dh 전 강수량 %.1fmm → 비 걱정 없어요! 즐겁게 관전하세요! ⚾",
                     game.getGameDateTime().toLocalTime(),
@@ -77,6 +79,7 @@ public class RainAlertTasklet implements Tasklet {
                 log.info("##### → rain alert sent to {} ({})", m.getName(), m.getTelegramId());
             } catch (Exception e) {
                 log.error("##### {}님에게 우천 알림 전송 실패: {}", m.getName(), e.getMessage(), e);
+                e.printStackTrace();
             }
         });
     }
