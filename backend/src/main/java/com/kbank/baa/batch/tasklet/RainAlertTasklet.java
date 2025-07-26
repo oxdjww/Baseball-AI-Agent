@@ -48,6 +48,8 @@ public class RainAlertTasklet implements Tasklet {
         // 1) 우천 알림 켠 멤버만 조회
         List<Member> members = memberRepo.findBySupportTeamAndNotifyRainAlertTrue(team);
 
+        log.info("→ found {} members for team {}", members.size(), team);
+
         // 2) 강수량 비교 후 메시지 발송
         String text;
         if (rain >= thresholdMm) {
@@ -65,6 +67,8 @@ public class RainAlertTasklet implements Tasklet {
                     hoursBefore, rain
             );
         }
+
+        log.info("##### text generated..{}", text);
 
         // 3) 메시지 전송 & 로깅
         members.forEach(m -> {
