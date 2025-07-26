@@ -45,4 +45,14 @@ public class RainAlertTestController {
         return ResponseEntity.ok("✔ 수동 알림 로직 실행 완료 for game="
                 + gameId + ", " + hoursBefore + "h, threshold=" + threshold + "mm");
     }
+
+    @GetMapping("/test/rain-alert")
+    public String testAlert() {
+        // 오늘 첫 번째 경기 하나를 불러와서
+        ScheduledGame game = apiClient.fetchScheduledGames(LocalDate.now(), LocalDate.now())
+                .get(1);
+        // “1시간 전” 기준으로 즉시 실행
+        rainTasklet.executeForGame(game, 1, /*thresholdMm=*/5);
+        return "Rain alert sent (check logs)";
+    }
 }
