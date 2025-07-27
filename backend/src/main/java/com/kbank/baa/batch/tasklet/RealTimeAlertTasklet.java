@@ -17,6 +17,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Slf4j
@@ -27,54 +29,127 @@ public class RealTimeAlertTasklet implements Tasklet {
     private final GameMessageFormatter formatter;
     private final TelegramService telegram;
 
+    // gameId → 현재 리드 중인 팀코드 ("NONE"은 비김/초기상태)
+    private final Map<String, String> leaderMap = new ConcurrentHashMap<>();
+
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
+        log.info("########## RealTimeAlertTasklet.execute 시작 ##########");
         LocalDate today = LocalDate.now();
-
-        // 1) 오늘 일정 조회
         List<ScheduledGame> schedules = apiClient.fetchScheduledGames(today, today);
-
-        // 2) 알림 대상 멤버 조회
         List<Member> members = memberRepo.findByNotifyRealTimeAlertTrue();
+        log.info("########## 조회된 오늘 경기 수={}, 알림 대상 멤버 수={} ##########",
+                schedules.size(), members.size());
 
-        // 3) 멤버별로 처리
-        for (Member m : members) {
-            String team = m.getSupportTeam().name();
-
-            schedules.stream()
-                    .filter(s -> team.equals(s.getHomeTeamCode()) || team.equals(s.getAwayTeamCode()))
-                    .forEach(s -> {
-                        try {
-                            RealtimeGameInfo info = apiClient.fetchGameInfo(s.getGameId());
-                            String status = info.getStatusCode();
-
-                            // 경기 시작 전/후 상태 로깅
-                            if (!"STARTED".equals(status)) {
-                                log.info("##### STATUS: {}", status);
-                                log.info("##### [{}]{} vs {} #####",
-                                        info.getGameId(), info.getAwayTeamCode(), info.getHomeTeamCode());
-                                if ("BEFORE".equals(status) || "READY".equals(status)) {
-                                    log.info("##### 경기 시작 예정: {} #####", info.getGameDateTime());
-                                } else if ("ENDED".equals(status) || "RESULT".equals(status)) {
-                                    log.info("##### 경기 종료: WINNER {} #####", info.getWinner());
-                                }
-                                return;
-                            }
-
-                            log.info("##### [{}]{} vs {} 경기중! 메시지 전송 #####",
-                                    info.getGameId(), info.getAwayTeamCode(), info.getHomeTeamCode());
-
-                            String text = formatter.format(m, info);
-                            telegram.sendMessage(m.getTelegramId(), text);
-
-                        } catch (Exception e) {
-                            // 개별 경기 또는 메시지 전송 실패 시 로깅 후 계속 진행
-                            log.error("##### 멤버={}({}) 처리 중 오류 발생: {}",
-                                    m.getName(), m.getTelegramId(), e.getMessage(), e);
-                        }
-                    });
+        for (ScheduledGame schedule : schedules) {
+            processGame(schedule, members);
         }
 
+        log.info("########## RealTimeAlertTasklet.execute 완료 ##########");
         return RepeatStatus.FINISHED;
+    }
+
+    private void processGame(ScheduledGame schedule, List<Member> members) {
+        String gameId = schedule.getGameId();
+        log.info("########## processGame 시작 → gameId={} ##########", gameId);
+
+        RealtimeGameInfo info;
+        try {
+            info = apiClient.fetchGameInfo(gameId);
+            log.info("########## 게임 정보 조회 성공 → gameId={}, status={} ##########",
+                    gameId, info.getStatusCode());
+        } catch (Exception e) {
+            log.error("########## 게임 정보 조회 실패 → {} : {} ##########",
+                    gameId, e.getMessage(), e);
+            return;
+        }
+
+        String status = info.getStatusCode();
+        if (!"STARTED".equals(status)) {
+            logGameStatus(schedule, info);
+        } else {
+            notifyPeriodicUpdates(schedule, members, info);
+            checkAndNotifyLeadChange(schedule, members, info);
+        }
+
+        log.info("########## processGame 완료 → gameId={} ##########", gameId);
+    }
+
+    private void logGameStatus(ScheduledGame s, RealtimeGameInfo info) {
+        log.info("########## STATUS={} [{}] {} vs {} ##########",
+                info.getStatusCode(),
+                info.getGameId(),
+                info.getAwayTeamCode(),
+                info.getHomeTeamCode()
+        );
+        // 필요시 READY/ENDED 등 세부 로그 추가
+    }
+
+    private void notifyPeriodicUpdates(ScheduledGame schedule, List<Member> members, RealtimeGameInfo info) {
+        String gameId = schedule.getGameId();
+        log.info("########## notifyPeriodicUpdates 시작 → gameId={} ##########", gameId);
+
+        members.stream()
+                .filter(m -> isSupportingGame(m, schedule))
+                .forEach(m -> {
+                    try {
+                        String text = formatter.format(m, info);
+                        telegram.sendMessage(m.getTelegramId(), text);
+                        log.info("########## 주기알림 전송 → member={} gameId={} ##########",
+                                m.getName(), gameId);
+                    } catch (Exception e) {
+                        log.error("########## 주기알림 에러 → member={} : {} ##########",
+                                m.getName(), e.getMessage(), e);
+                    }
+                });
+
+        log.info("########## notifyPeriodicUpdates 완료 → gameId={} ##########", gameId);
+    }
+
+    private void checkAndNotifyLeadChange(ScheduledGame schedule, List<Member> members, RealtimeGameInfo info) {
+        String gameId = schedule.getGameId();
+        String prevLeader = leaderMap.getOrDefault(gameId, "NONE");
+        String currLeader = calculateLeader(info);
+
+        log.info("########## checkAndNotifyLeadChange 시작 → gameId={}, prevLeader={}, currLeader={} ##########",
+                gameId, prevLeader, currLeader);
+
+        if (!currLeader.equals(prevLeader)) {
+            log.info("########## 리더 변경 감지 → gameId={}, {} → {} ##########",
+                    gameId, prevLeader, currLeader);
+
+            leaderMap.put(gameId, currLeader);
+
+            members.stream()
+                    .filter(m -> currLeader.equals(m.getSupportTeam().name()))
+                    .forEach(m -> {
+                        try {
+                            String text = formatter.formatLeadChange(m, info, prevLeader, currLeader);
+                            telegram.sendMessage(m.getTelegramId(), text);
+                            log.info("########## 역전/동점 알림 전송 → member={} gameId={} ##########",
+                                    m.getName(), gameId);
+                        } catch (Exception e) {
+                            log.error("########## 역전알림 에러 → member={} : {} ##########",
+                                    m.getName(), e.getMessage(), e);
+                        }
+                    });
+
+            log.info("########## checkAndNotifyLeadChange 완료 (알림전송) → gameId={} ##########", gameId);
+        } else {
+            log.info("########## 리더 변경 없음 → gameId={} (leader={}) ##########", gameId, currLeader);
+        }
+    }
+
+    private boolean isSupportingGame(Member m, ScheduledGame s) {
+        String t = m.getSupportTeam().name();
+        return t.equals(s.getHomeTeamCode()) || t.equals(s.getAwayTeamCode());
+    }
+
+    private String calculateLeader(RealtimeGameInfo info) {
+        int away = info.getAwayScore();
+        int home = info.getHomeScore();
+        if (away > home) return info.getAwayTeamCode();
+        else if (home > away) return info.getHomeTeamCode();
+        else return "NONE";
     }
 }
