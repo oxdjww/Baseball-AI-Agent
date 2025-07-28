@@ -16,11 +16,23 @@ spring:
   rest:
     connection-timeout: 3000
     read-timeout: 5000
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      base-url: https://api.perplexity.ai
+      chat:
+        completions-path: /chat/completions
+        options:
+          model: sonar
+          temperature: 0.7
+      embedding:
+        enabled: false
 
 telegram:
   bot-token: ${TELEGRAM_BOT_TOKEN}
-  chat-id: ${TELEGRAM_CHAT_ID}
+  group-chat-id: ${TELEGRAM_CHAT_ID}
 
 kma:
   api:
     key: ${KMA_API_KEY}
+

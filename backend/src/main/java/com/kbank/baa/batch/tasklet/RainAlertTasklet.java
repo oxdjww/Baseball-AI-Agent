@@ -5,6 +5,7 @@ import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.MemberRepository;
 import com.kbank.baa.admin.Team;
 import com.kbank.baa.sports.ScheduledGame;
+import com.kbank.baa.telegram.TelegramProperties;
 import com.kbank.baa.telegram.TelegramService;
 import com.kbank.baa.weather.service.RainfallService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class RainAlertTasklet implements Tasklet {
     private final RainfallService rainfallService;
     private final MemberRepository memberRepo;
     private final TelegramService telegram;
+    private final TelegramProperties telegramProperties;
 
     @Override
     public RepeatStatus execute(StepContribution contribution,
@@ -79,7 +81,9 @@ public class RainAlertTasklet implements Tasklet {
         // 5) 홈팀 멤버에게 전송
         homeMembers.forEach(m -> {
             try {
-                telegram.sendMessage(m.getTelegramId(), text);
+//                telegram.sendMessage(m.getTelegramId(), text);
+                // 20250729 TEST
+                telegram.sendMessage(telegramProperties.getGroupChatId(), m.getTelegramId(), m.getName(), text);
                 log.info("→ 우천 알림(홈) sent to {} ({})", m.getName(), m.getTelegramId());
             } catch (Exception e) {
                 log.error("→ {}님(홈)에게 우천 알림 전송 실패: {}", m.getName(), e.getMessage(), e);
@@ -89,7 +93,7 @@ public class RainAlertTasklet implements Tasklet {
         // 6) 어웨이팀 멤버에게도 전송
         awayMembers.forEach(m -> {
             try {
-                telegram.sendMessage(m.getTelegramId(), text);
+                telegram.sendMessage(telegramProperties.getGroupChatId(), m.getTelegramId(), m.getName(), text);
                 log.info("→ 우천 알림(어웨이) sent to {} ({})", m.getName(), m.getTelegramId());
             } catch (Exception e) {
                 log.error("→ {}님(어웨이)에게 우천 알림 전송 실패: {}", m.getName(), e.getMessage(), e);

@@ -6,9 +6,13 @@ import com.kbank.baa.sports.SportsApiClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -16,13 +20,13 @@ import java.util.Optional;
 @RequestMapping("/test")
 public class RainAlertTestController {
 
-    private final SportsApiClient   apiClient;
-    private final RainAlertTasklet  rainTasklet;
+    private final SportsApiClient apiClient;
+    private final RainAlertTasklet rainTasklet;
 
     /**
      * today(yyyy-MM-dd) 날짜의 특정 gameId에 대해
      * 수동으로 1h/3h 전 우천 알림 로직을 바로 실행해 봅니다.
-     *
+     * <p>
      * e.g. GET /test/rain-alert?date=2025-07-23&gameId=20250723LGHT02025&hoursBefore=1&threshold=5
      */
     @GetMapping("/rain-alert")
@@ -49,10 +53,11 @@ public class RainAlertTestController {
     @GetMapping("/test/rain-alert")
     public String testAlert() {
         // 오늘 첫 번째 경기 하나를 불러와서
-        ScheduledGame game = apiClient.fetchScheduledGames(LocalDate.now(), LocalDate.now())
-                .get(1);
+        List<ScheduledGame> scheduledGames = apiClient.fetchScheduledGames(LocalDate.now().plusDays(1), LocalDate.now().plusDays(1));
         // “1시간 전” 기준으로 즉시 실행
-        rainTasklet.executeForGame(game, 1, /*thresholdMm=*/5);
+        for (ScheduledGame scheduledGame : scheduledGames) {
+            rainTasklet.executeForGame(scheduledGame, 1, /*thresholdMm=*/5);
+        }
         return "Rain alert sent (check logs)";
     }
 }

@@ -22,11 +22,30 @@ public class TelegramService {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("chat_id", chatId);
         body.add("text", text);
+        body.add("parse_mode", "HTML");
+
         rt.postForEntity(url, body, String.class);
     }
 
-    // 기존 기본 chatId 호환용
-    public void sendMessage(String text) {
-        sendMessage(props.getChatId(), text);
+    // 단체방 태그 전송
+    public void sendMessage(String chatId, String mentionId, String name, String text) {
+        String url = props.getApiUrl() + "sendMessage";
+
+        // mentionId가 null이거나 비어있지 않다면 멘션 처리
+        String formattedText;
+        if (mentionId != null && !mentionId.isBlank()) {
+            formattedText = String.format("👤 <a href=\"tg://user?id=%s\">%s</a> %s", mentionId, name, text);
+        } else {
+            formattedText = text; // 멘션이 없으면 그대로 전송
+        }
+
+        log.info("########## Telegram으로 메시지 전송 시도: chatId={}, mentionId={}, text={}", chatId, mentionId, formattedText);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("chat_id", chatId);
+        body.add("text", formattedText);
+        body.add("parse_mode", "HTML");
+
+        rt.postForEntity(url, body, String.class);
     }
 }

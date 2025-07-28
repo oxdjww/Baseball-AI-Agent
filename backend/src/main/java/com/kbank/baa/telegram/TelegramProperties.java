@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class TelegramProperties {
     private String botToken;
-    private String chatId;
+    private String groupChatId;
 
     public String getApiUrl() {
         return "https://api.telegram.org/bot" + botToken + "/";
