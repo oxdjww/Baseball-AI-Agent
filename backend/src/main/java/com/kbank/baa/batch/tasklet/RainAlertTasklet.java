@@ -94,7 +94,7 @@ public class RainAlertTasklet implements Tasklet {
         awayMembers.forEach(m -> {
             try {
                 telegram.sendMessage(telegramProperties.getGroupChatId(), m.getTelegramId(), m.getName(), text);
-                log.info("→ 우천 알림(어웨이) sent to {} ({})", m.getName(), m.getTelegramId());
+                log.info("→  우천 알림(어웨이) sent to {} ({})", m.getName(), m.getTelegramId());
             } catch (Exception e) {
                 log.error("→ {}님(어웨이)에게 우천 알림 전송 실패: {}", m.getName(), e.getMessage(), e);
             }
