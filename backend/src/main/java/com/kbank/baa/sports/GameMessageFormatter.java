@@ -28,16 +28,31 @@ public class GameMessageFormatter {
                                    RealtimeGameInfo info,
                                    String prevLeader,
                                    String currLeader) {
-        int away = info.getAwayScore();
-        int home = info.getHomeScore();
+        int awayTeamScore = info.getAwayScore();
+        int homeTeamScore = info.getHomeScore();
+
+        String awayTeamName = info.getAwayTeamName();
+        String homeTeamName = info.getHomeTeamName();
 
         if ("NONE".equals(currLeader)) {
-            return String.format("[%s] 경기가 %d:%d 동점이 되었습니다!",
-                    info.getGameId(), away, home);
+            return String.format(
+                    "[<b>%s</b> VS <b>%s</b>] 경기 상황에 변동이 있어요!<br/>" +
+                            "경기가 <b>%d : %d</b> 동점이 되었습니다! 🔥",
+                    awayTeamName,
+                    homeTeamName,
+                    awayTeamScore,
+                    homeTeamScore
+            );
         } else {
-            return String.format("[%s] 이제 %s팀이 %d:%d로 리드합니다! 🚀",
-                    info.getGameId(),
-                    Team.getDisplayNameByCode(currLeader), away, home);
+            return String.format(
+                    "[<b>%s</b> VS <b>%s</b>] 경기 상황에 변동이 있어요!<br/>" +
+                            "이제 <b>%s팀</b>이 <b>%d:%d</b>로 리드합니다! 🚀",
+                    awayTeamName,
+                    homeTeamName,
+                    Team.getDisplayNameByCode(currLeader),
+                    awayTeamScore,
+                    homeTeamScore
+            );
         }
     }
 }

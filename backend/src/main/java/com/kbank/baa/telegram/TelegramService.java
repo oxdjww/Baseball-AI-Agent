@@ -28,7 +28,7 @@ public class TelegramService {
     }
 
     // 단체방 태그 전송
-    public void sendMessage(String chatId, String mentionId, String name, String text) {
+    public void sendMessageWithMention(String chatId, String mentionId, String name, String text) {
         String url = props.getApiUrl() + "sendMessage";
 
         // mentionId가 null이거나 비어있지 않다면 멘션 처리

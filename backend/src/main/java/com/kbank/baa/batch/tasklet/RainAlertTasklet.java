@@ -66,14 +66,14 @@ public class RainAlertTasklet implements Tasklet {
         if (rain >= thresholdMm) {
             log.info("rain >= thresholdMm ({} ≥ {}), 우천취소 가능성 메시지 생성", rain, thresholdMm);
             text = String.format(
-                    "[%s] %s %dh 전 강수량 %.1fmm → 우천취소 가능성 있어요! ☔",
-                    startTime, vs, hoursBefore, rain
+                    "<b>님, %s %d시간 전 강수량 %.1fmm\n우천취소 가능성 있어요!<b> ☔️",
+                    vs, hoursBefore, rain
             );
         } else {
             log.info("rain < thresholdMm ({} < {}), 관전 권장 메시지 생성", rain, thresholdMm);
             text = String.format(
-                    "[%s] %s %dh 전 강수량 %.1fmm → 비 걱정 없어요! 즐겁게 관전하세요! ⚾",
-                    startTime, vs, hoursBefore, rain
+                    "님, %s %d시간 전 강수량 %.1fmm\n비 걱정 없어요! 즐겁게 관전하세요! ⚾",
+                    vs, hoursBefore, rain
             );
         }
         log.debug("##### Generated text: {}", text);
@@ -83,7 +83,7 @@ public class RainAlertTasklet implements Tasklet {
             try {
 //                telegram.sendMessage(m.getTelegramId(), text);
                 // 20250729 TEST
-                telegram.sendMessage(telegramProperties.getGroupChatId(), m.getTelegramId(), m.getName(), text);
+                telegram.sendMessageWithMention(telegramProperties.getGroupChatId(), m.getTelegramId(), m.getName(), text);
                 log.info("→ 우천 알림(홈) sent to {} ({})", m.getName(), m.getTelegramId());
             } catch (Exception e) {
                 log.error("→ {}님(홈)에게 우천 알림 전송 실패: {}", m.getName(), e.getMessage(), e);
@@ -93,7 +93,7 @@ public class RainAlertTasklet implements Tasklet {
         // 6) 어웨이팀 멤버에게도 전송
         awayMembers.forEach(m -> {
             try {
-                telegram.sendMessage(telegramProperties.getGroupChatId(), m.getTelegramId(), m.getName(), text);
+                telegram.sendMessageWithMention(telegramProperties.getGroupChatId(), m.getTelegramId(), m.getName(), text);
                 log.info("→  우천 알림(어웨이) sent to {} ({})", m.getName(), m.getTelegramId());
             } catch (Exception e) {
                 log.error("→ {}님(어웨이)에게 우천 알림 전송 실패: {}", m.getName(), e.getMessage(), e);

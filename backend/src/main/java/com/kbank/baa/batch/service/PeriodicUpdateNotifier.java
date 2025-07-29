@@ -32,7 +32,7 @@ public class PeriodicUpdateNotifier {
                         var text = formatter.format(m, info);
 //                        telegram.sendMessage(m.getTelegramId(), text);
                         // 20250729 TEST
-                        telegram.sendMessage(telegramProperties.getGroupChatId(), m.getTelegramId(), m.getName(), text);
+                        telegram.sendMessageWithMention(telegramProperties.getGroupChatId(), m.getTelegramId(), m.getName(), text);
                     } catch (Exception e) {
                         log.error("########## 주기알림 에러 → member={} : {} ##########", m.getName(), e.getMessage());
                     }
