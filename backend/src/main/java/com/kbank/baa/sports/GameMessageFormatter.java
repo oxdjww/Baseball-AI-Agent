@@ -1,6 +1,7 @@
 package com.kbank.baa.sports;
 
 import com.kbank.baa.admin.Member;
+import com.kbank.baa.admin.Team;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,10 +35,9 @@ public class GameMessageFormatter {
             return String.format("[%s] 경기가 %d:%d 동점이 되었습니다!",
                     info.getGameId(), away, home);
         } else {
-            return String.format("[%s] %s팀이 %d:%d로 리드합니다 (이전 %s). 응원하세요! 🚀",
+            return String.format("[%s] 이제 %s팀이 %d:%d로 리드합니다! 🚀",
                     info.getGameId(),
-                    currLeader, away, home,
-                    "NONE".equals(prevLeader) ? "초기" : prevLeader);
+                    Team.getDisplayNameByCode(currLeader), away, home);
         }
     }
 }

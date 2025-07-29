@@ -31,4 +31,8 @@ public enum Team {
             throw new IllegalArgumentException("알 수 없는 팀 코드: " + code);
         }
     }
+
+    public static String getDisplayNameByCode(String code) {
+        return of(code).getDisplayName();
+    }
 }
