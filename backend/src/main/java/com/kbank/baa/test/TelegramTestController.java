@@ -1,5 +1,6 @@
-package com.kbank.baa.telegram;
+package com.kbank.baa.test;
 
+import com.kbank.baa.telegram.TelegramService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;

@@ -21,7 +21,6 @@ public class MemberController {
     @GetMapping("/new")
     public String newForm(Model model) {
         model.addAttribute("member", new Member());
-        // ★ teams enum 값 추가
         model.addAttribute("teams", Team.values());
         return "member/form";
     }
@@ -37,7 +36,6 @@ public class MemberController {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Not found"));
         model.addAttribute("member", member);
-        // ★ teams enum 값 추가
         model.addAttribute("teams", Team.values());
         return "member/form";
     }

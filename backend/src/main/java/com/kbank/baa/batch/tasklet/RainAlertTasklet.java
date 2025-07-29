@@ -8,6 +8,7 @@ import com.kbank.baa.sports.ScheduledGame;
 import com.kbank.baa.telegram.TelegramProperties;
 import com.kbank.baa.telegram.TelegramService;
 import com.kbank.baa.weather.service.RainfallService;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;
@@ -29,9 +30,8 @@ public class RainAlertTasklet implements Tasklet {
     private final TelegramProperties telegramProperties;
 
     @Override
-    public RepeatStatus execute(StepContribution contribution,
-                                ChunkContext chunkContext) {
-        // 실제 배치 로직에서 executeForGame() 을 호출하는 부분이 있다면 그대로 두시고
+    public RepeatStatus execute(@NonNull StepContribution contribution,
+                                @NonNull ChunkContext chunkContext) {
         return RepeatStatus.FINISHED;
     }
 

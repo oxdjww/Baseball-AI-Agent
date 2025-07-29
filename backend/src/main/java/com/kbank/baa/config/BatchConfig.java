@@ -54,7 +54,6 @@ public class BatchConfig {
     public Step realTimeAlertStep(JobRepository jobRepository,
                                   PlatformTransactionManager tm,
                                   RealTimeAlertTasklet realTimeAlertTasklet) {
-        // RealTimeAlertTasklet은 Spring bean으로 DI된 의존성을 가짐
         return new StepBuilder("realTimeAlertStep", jobRepository)
                 .tasklet(realTimeAlertTasklet, tm)
                 .build();

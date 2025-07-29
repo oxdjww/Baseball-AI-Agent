@@ -1,4 +1,4 @@
-package com.kbank.baa.web;
+package com.kbank.baa.test;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.openai.OpenAiChatModel;

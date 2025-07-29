@@ -1,4 +1,4 @@
-package com.kbank.baa.web;
+package com.kbank.baa.test;
 
 import com.kbank.baa.batch.tasklet.RainAlertTasklet;
 import com.kbank.baa.sports.ScheduledGame;

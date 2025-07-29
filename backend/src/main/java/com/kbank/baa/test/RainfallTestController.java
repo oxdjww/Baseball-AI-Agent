@@ -1,5 +1,5 @@
 // src/main/java/com/kbank/baa/weather/controller/TestRainfallController.java
-package com.kbank.baa.weather.controller;
+package com.kbank.baa.test;
 
 import com.kbank.baa.weather.service.RainfallService;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/rainfall")
 @RequiredArgsConstructor
-public class RainfallController {
+public class RainfallTestController {
 
     private final RainfallService rainfallService;
 
