@@ -50,7 +50,7 @@ public class RainAlertTestController {
                 + gameId + ", " + hoursBefore + "h, threshold=" + threshold + "mm");
     }
 
-    @GetMapping("/test/rain-alert")
+    @GetMapping("/today/rain-alert")
     public String testAlert() {
         // 오늘 첫 번째 경기 하나를 불러와서
         List<ScheduledGame> scheduledGames = apiClient.fetchScheduledGames(LocalDate.now().plusDays(1), LocalDate.now().plusDays(1));
