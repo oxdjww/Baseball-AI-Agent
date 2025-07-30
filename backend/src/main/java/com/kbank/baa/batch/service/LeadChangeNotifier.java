@@ -60,6 +60,7 @@ public class LeadChangeNotifier {
                                     m.getName(), e.getMessage(), e);
                         }
                     });
+
             log.info("########## 역전알림 완료 → gameId={} ##########", gameId);
         } else {
             log.info("########## 리더 변경 없음 → gameId={} (leader={}) ##########",
