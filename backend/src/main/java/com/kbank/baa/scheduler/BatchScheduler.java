@@ -29,9 +29,9 @@ public class BatchScheduler {
 //    @Scheduled(fixedDelay = 300_000) // 5분, 테스트용
 
     /**
-     * 야구 경기가 실제로 일어날 수 있는 시간에만 운영 (3분마다, 13:00–21:59 사이)
+     * 야구 경기가 실제로 일어날 수 있는 시간에만 운영 (3분마다, 13:00–22:59 사이)
      */
-    @Scheduled(cron = "0 0/3 13-21 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0/3 13-22 * * *", zone = "Asia/Seoul")
     public void runRealTimeAlert() throws Exception {
         jobLauncher.run(realTimeAlertJob,
                 new JobParametersBuilder()
