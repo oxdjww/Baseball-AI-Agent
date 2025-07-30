@@ -36,7 +36,7 @@ public class GameMessageFormatter {
 
         if ("NONE".equals(currLeader)) {
             return String.format(
-                    "[<b>%s</b> VS <b>%s</b>] 경기 상황에 변동이 있어요!<br/>" +
+                    "[<b>%s</b> VS <b>%s</b>] 경기 상황에 변동이 있어요!\n" +
                             "경기가 <b>%d : %d</b> 동점이 되었습니다! 🔥",
                     awayTeamName,
                     homeTeamName,
@@ -45,7 +45,7 @@ public class GameMessageFormatter {
             );
         } else {
             return String.format(
-                    "[<b>%s</b> VS <b>%s</b>] 경기 상황에 변동이 있어요!<br/>" +
+                    "[<b>%s</b> VS <b>%s</b>] 경기 상황에 변동이 있어요!\n" +
                             "이제 <b>%s팀</b>이 <b>%d:%d</b>로 리드합니다! 🚀",
                     awayTeamName,
                     homeTeamName,
