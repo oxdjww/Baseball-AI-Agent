@@ -52,7 +52,7 @@ public class LeadChangeNotifier {
                             String text = formatter.formatLeadChange(m, info, prevLeader, currLeader);
 //                            telegram.sendMessage(m.getTelegramId(), text);
                             // 20250729 TEST
-                            telegram.sendMessageWithMention(telegramProperties.getGroupChatId(), m.getTelegramId(), m.getName(), text);
+                            telegram.sendMessage(m.getTelegramId(), m.getName(), text);
                             log.info("########## 역전알림 전송 → member={} gameId={} ##########",
                                     m.getName(), gameId);
                         } catch (Exception e) {

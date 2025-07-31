@@ -15,13 +15,14 @@ public class TelegramService {
     private final RestTemplate rt = new RestTemplate();
 
     // 멤버별 chatId로 전송
-    public void sendMessage(String chatId, String text) {
+    public void sendMessage(String chatId, String name, String text) {
         String url = props.getApiUrl() + "sendMessage";
         log.info("##### Telegram으로 메시지 전송 시도: url={}, chatId={}, text={}", url, chatId, text);
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        String textWithName = String.format("%s님, %s", name, text);
         body.add("chat_id", chatId);
-        body.add("text", text);
+        body.add("text", textWithName);
         body.add("parse_mode", "HTML");
 
         rt.postForEntity(url, body, String.class);

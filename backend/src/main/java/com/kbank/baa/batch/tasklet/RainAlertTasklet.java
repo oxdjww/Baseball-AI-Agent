@@ -83,7 +83,7 @@ public class RainAlertTasklet implements Tasklet {
             try {
 //                telegram.sendMessage(m.getTelegramId(), text);
                 // 20250729 TEST
-                telegram.sendMessageWithMention(telegramProperties.getGroupChatId(), m.getTelegramId(), m.getName(), text);
+                telegram.sendMessage(m.getTelegramId(), m.getName(), text);
                 log.info("→ 우천 알림(홈) sent to {} ({})", m.getName(), m.getTelegramId());
             } catch (Exception e) {
                 log.error("→ {}님(홈)에게 우천 알림 전송 실패: {}", m.getName(), e.getMessage(), e);
@@ -93,7 +93,7 @@ public class RainAlertTasklet implements Tasklet {
         // 6) 어웨이팀 멤버에게도 전송
         awayMembers.forEach(m -> {
             try {
-                telegram.sendMessageWithMention(telegramProperties.getGroupChatId(), m.getTelegramId(), m.getName(), text);
+                telegram.sendMessage(m.getTelegramId(), m.getName(), text);
                 log.info("→  우천 알림(어웨이) sent to {} ({})", m.getName(), m.getTelegramId());
             } catch (Exception e) {
                 log.error("→ {}님(어웨이)에게 우천 알림 전송 실패: {}", m.getName(), e.getMessage(), e);

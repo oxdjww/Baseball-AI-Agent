@@ -21,7 +21,7 @@ public class TelegramTestController {
             @RequestParam String chatId,
             @RequestParam String text
     ) {
-        telegramService.sendMessage(chatId, text);
+        telegramService.sendMessage(chatId, "fake name", text);
         return "✅ 메시지 전송 완료: chatId = " + chatId;
     }
 }
