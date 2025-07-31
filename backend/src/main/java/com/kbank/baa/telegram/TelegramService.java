@@ -17,13 +17,18 @@ public class TelegramService {
     // 멤버별 chatId로 전송
     public void sendMessage(String chatId, String name, String text) {
         String url = props.getApiUrl() + "sendMessage";
-        log.info("##### Telegram으로 메시지 전송 시도: url={}, chatId={}, text={}", url, chatId, text);
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         String textWithName = String.format("%s님, %s", name, text);
         body.add("chat_id", chatId);
         body.add("text", textWithName);
         body.add("parse_mode", "HTML");
+        try {
+            log.info("##### Telegram으로 메시지 전송 시도: url={}, chatId={}, textWithName={}", url, chatId, textWithName);
+        } catch (Exception e) {
+            log.debug("##### Telegram 메시지 전송 중 에러 발생 {}", e.getMessage());
+            e.printStackTrace();
+        }
 
         rt.postForEntity(url, body, String.class);
     }
