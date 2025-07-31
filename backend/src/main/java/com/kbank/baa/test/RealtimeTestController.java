@@ -18,7 +18,7 @@ public class RealtimeTestController {
 
     private final RealTimeAlertTasklet tasklet;
 
-    @GetMapping("/test/alert")
+    @GetMapping("/test/realAlert")
     public String runRealTimeAlertTasklet() {
         try {
             StepExecution dummyStepExecution = new StepExecution("dummyStep", null);
