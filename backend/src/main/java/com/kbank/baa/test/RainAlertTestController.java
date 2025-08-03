@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,35 +30,37 @@ public class RainAlertTestController {
      * <p>
      * e.g. GET /test/rain-alert?date=2025-07-23&gameId=20250723LGHT02025&hoursBefore=1&threshold=5
      */
-    @GetMapping("/rain-alert")
-    public ResponseEntity<String> testRainAlert(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam String gameId,
-            @RequestParam int hoursBefore,
-            @RequestParam double threshold
-    ) {
-        Optional<ScheduledGame> maybe = apiClient.fetchScheduledGames(date, date).stream()
-                .filter(g -> g.getGameId().equals(gameId))
-                .findFirst();
-
-        if (maybe.isEmpty()) {
-            return ResponseEntity.badRequest()
-                    .body("해당 날짜·gameId에 대한 경기를 찾을 수 없습니다.");
-        }
-
-        rainTasklet.executeForGame(maybe.get(), hoursBefore, threshold);
-        return ResponseEntity.ok("✔ 수동 알림 로직 실행 완료 for game="
-                + gameId + ", " + hoursBefore + "h, threshold=" + threshold + "mm");
-    }
+//    @GetMapping("/rain-alert")
+//    public ResponseEntity<String> testRainAlert(
+//            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+//            @RequestParam String gameId,
+//            @RequestParam int hoursBefore,
+//            @RequestParam double threshold
+//    ) {
+//        Optional<ScheduledGame> maybe = apiClient.fetchScheduledGames(date, date).stream()
+//                .filter(g -> g.getGameId().equals(gameId))
+//                .findFirst();
+//
+//        if (maybe.isEmpty()) {
+//            return ResponseEntity.badRequest()
+//                    .body("해당 날짜·gameId에 대한 경기를 찾을 수 없습니다.");
+//        }
+//
+//        rainTasklet.executeForGame(maybe.get(), hoursBefore, threshold);
+//        return ResponseEntity.ok("✔ 수동 알림 로직 실행 완료 for game="
+//                + gameId + ", " + hoursBefore + "h, threshold=" + threshold + "mm");
+//    }
 
     @GetMapping("/today/rain-alert")
     public String testAlert() {
-        // 오늘 첫 번째 경기 하나를 불러와서
         List<ScheduledGame> scheduledGames = apiClient.fetchScheduledGames(LocalDate.now(), LocalDate.now());
-        // “1시간 전” 기준으로 즉시 실행
-        for (ScheduledGame scheduledGame : scheduledGames) {
-            rainTasklet.executeForGame(scheduledGame, 1, /*thresholdMm=*/5);
+        for (ScheduledGame game : scheduledGames) {
+            // ① 알림 시점 계산
+            LocalDateTime alertTime = game.getGameDateTime().minusHours(1);
+            // ② 반드시 4-arg 메서드 호출!
+            rainTasklet.executeForGame(game, alertTime, 1, /*thresholdMm=*/5);
         }
         return "Rain alert sent (check logs)";
     }
+
 }

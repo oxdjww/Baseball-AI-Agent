@@ -23,32 +23,33 @@ public class RainfallService {
     @Value("${kma.api.key}")
     private String apiKey;
 
-    public double getRainfallByTeam(String teamCode) {
+    /**
+     * *알림 시점* 기준으로 강수량 조회
+     */
+    public double getRainfallByTeam(String teamCode, LocalDateTime baseTime) {
         Team team = Team.of(teamCode);
-        String raw = fetchRawCsv(team.getStn());
-        log.info("Received: {}", raw);
+        String raw = fetchRawCsv(team.getStn(), baseTime);
+        log.debug("Received raw CSV:\n{}", raw);
 
         String[] header = null;
         String[] data = null;
 
         for (String line : raw.split("\\r?\\n")) {
             String t = line.stripLeading();
-            // 1) 헤더 라인: "# YYMMDDHHMI STN ... RN RN RN"
             if (t.startsWith("#") && t.contains("YYMMDDHHMI")) {
                 header = splitCsv(t.substring(1).trim());
-            }
-            // 2) 데이터 라인: 숫자로 시작하는 실제 관측값
-            else if (!t.isEmpty() && Character.isDigit(t.charAt(0))) {
+            } else if (!t.isEmpty() && Character.isDigit(t.charAt(0))) {
                 data = splitCsv(t.trim());
             }
         }
 
+        // ◆ 관측값이 없으면 정상(0.0) 처리
         if (header == null || data == null) {
-            log.warn("파싱 실패: header={} data={}", header, data);
+            log.debug("강수량 데이터 없음(정상): header={} data={}", header, data);
             return 0.0;
         }
 
-        // RN 컬럼 위치 전부 찾아서 최대값 추출
+        // RN 컬럼 최대값 찾기
         double maxRain = -1.0;
         for (int i = 0; i < header.length; i++) {
             if (COLUMN_RN.equals(header[i]) && i < data.length) {
@@ -59,26 +60,30 @@ public class RainfallService {
             }
         }
 
+        // ◆ RN 컬럼이 하나도 없으면 정상(0.0) 처리
         if (maxRain < 0) {
-            log.warn("RN 파싱 실패: header={} / data={}", String.join(" ", header), String.join(" ", data));
+            log.debug("RN 컬럼 값 없음(정상): header={} / data={}",
+                    String.join(" ", header),
+                    String.join(" ", data));
             return 0.0;
         }
+
         return maxRain;
     }
 
-    private String formatTmToHour() {
-        return LocalDateTime.now()
+    /**
+     * 정각 `baseTime` 을 이용해 tm 파라미터까지 지정
+     */
+    private String fetchRawCsv(int stn, LocalDateTime baseTime) {
+        String tm = baseTime
                 .withMinute(0)
                 .withSecond(0)
                 .format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
-    }
 
-    private String fetchRawCsv(int stn) {
-        String tm = formatTmToHour();  // 매 시 정각으로 고정
         String url = UriComponentsBuilder
                 .fromHttpUrl(API_URL)
                 .queryParam("stn", stn)
-                .queryParam("tm", tm)
+                .queryParam("tm", tm)            // ★ 여기에 tm 추가
                 .queryParam("help", 0)
                 .queryParam("authKey", apiKey)
                 .toUriString();

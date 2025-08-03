@@ -58,7 +58,7 @@ public class RainAlertJobScheduler {
         if (alertTime.isAfter(LocalDateTime.now())) {
             Date when = Date.from(alertTime.atZone(ZoneId.systemDefault()).toInstant());
             scheduler.schedule(
-                    () -> rainTasklet.executeForGame(game, hoursBefore, thresholdMm),
+                    () -> rainTasklet.executeForGame(game, alertTime, hoursBefore, thresholdMm),
                     when
             );
             log.info("##### → scheduled alert for game {} at {} ({}h before)",

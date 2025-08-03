@@ -85,6 +85,19 @@ public class SportsApiClient {
                 .build();
     }
 
+    public boolean fetchCancelInfoFromGameInfo(String gameId) {
+        String url = "https://api-gw.sports.naver.com/schedule/games/" + gameId;
+        ResponseEntity<JsonNode> resp = restTemplate.getForEntity(url, JsonNode.class);
+        JsonNode root = Optional.ofNullable(resp.getBody())
+                .orElseThrow(() -> new RestClientException("########## API Fetch Failure: " + url));
+        String cancelInfo = root.path("result").path("game").path("cancel").asText();
+        if (cancelInfo.equals("true")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     @SuppressWarnings("unused")
     @Recover
     public List<ScheduledGame> recover(RestClientException ex, LocalDate from, LocalDate to) {

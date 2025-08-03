@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestController
@@ -21,7 +22,7 @@ public class RainfallTestController {
 
     @GetMapping("/{teamCode}")
     public ResponseEntity<?> getRainfall(@PathVariable String teamCode) {
-        double mm = rainfallService.getRainfallByTeam(teamCode);
+        double mm = rainfallService.getRainfallByTeam(teamCode, LocalDateTime.now());
         return ResponseEntity.ok(Map.of(
                 "teamCode", teamCode.toUpperCase(),
                 "rainfall_mm", mm

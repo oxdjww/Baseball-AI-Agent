@@ -5,7 +5,7 @@ import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.MemberRepository;
 import com.kbank.baa.admin.Team;
 import com.kbank.baa.sports.ScheduledGame;
-import com.kbank.baa.telegram.TelegramProperties;
+import com.kbank.baa.sports.SportsApiClient;
 import com.kbank.baa.telegram.TelegramService;
 import com.kbank.baa.weather.service.RainfallService;
 import lombok.NonNull;
@@ -17,7 +17,7 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -27,7 +27,7 @@ public class RainAlertTasklet implements Tasklet {
     private final RainfallService rainfallService;
     private final MemberRepository memberRepo;
     private final TelegramService telegram;
-    private final TelegramProperties telegramProperties;
+    private final SportsApiClient sportsApiClient;
 
     @Override
     public RepeatStatus execute(@NonNull StepContribution contribution,
@@ -41,6 +41,7 @@ public class RainAlertTasklet implements Tasklet {
      * @param thresholdMm 시간당 강수량 기준(mm)
      */
     public void executeForGame(ScheduledGame game,
+                               LocalDateTime alertTime,
                                int hoursBefore,
                                double thresholdMm) {
         // 1) enum에서 팀 정보 조회
@@ -48,7 +49,7 @@ public class RainAlertTasklet implements Tasklet {
         Team awayTeam = Team.of(game.getAwayTeamCode());
 
         // 2) 기상청에서 해당 경기장의 강수량 조회 (홈팀 스테이션 사용)
-        double rain = rainfallService.getRainfallByTeam(homeTeam.name());
+        double rain = rainfallService.getRainfallByTeam(homeTeam.name(), alertTime);
         log.info("##### checkRain: game={} {}h before, rain={}mm, threshold={}mm",
                 game.getGameId(), hoursBefore, rain, thresholdMm);
 
@@ -60,15 +61,24 @@ public class RainAlertTasklet implements Tasklet {
                 awayMembers.size(), awayTeam.getDisplayName());
 
         // 4) 메시지 텍스트 생성
-        LocalTime startTime = game.getGameDateTime().toLocalTime();
         String vs = String.format("[%s vs %s]", awayTeam.getDisplayName(), homeTeam.getDisplayName());
         String text;
         if (rain >= thresholdMm) {
-            log.info("rain >= thresholdMm ({} ≥ {}), 우천취소 가능성 메시지 생성", rain, thresholdMm);
-            text = String.format(
-                    "<b>%s %d시간 전 강수량 %.1fmm\n우천취소 가능성 있어요!</b> ☔️",
-                    vs, hoursBefore, rain
-            );
+            if (sportsApiClient.fetchCancelInfoFromGameInfo(game.getGameId())) {
+                // 강수량도 기준치 이상이고, 실제로 게임도 취소된 경우
+                log.info("rain >= thresholdMm ({} ≥ {}), 우천취소 확정 메시지 생성", rain, thresholdMm);
+                text = String.format(
+                        "<b>%s %d시간 전 강수량 %.1fmm\n경기가 우천취소 되었어요!</b> ☔️",
+                        vs, hoursBefore, rain
+                );
+            } else {
+                // 강수량은 기준치 이상이나, 실제로 게임은 아직 취소되지 않은 경우
+                log.info("rain >= thresholdMm ({} ≥ {}), 우천취소 가능성 메시지 생성", rain, thresholdMm);
+                text = String.format(
+                        "<b>%s %d시간 전 강수량 %.1fmm\n우천취소 가능성 있어요!</b> ☔️",
+                        vs, hoursBefore, rain
+                );
+            }
         } else {
             log.info("rain < thresholdMm ({} < {}), 관전 권장 메시지 생성", rain, thresholdMm);
             text = String.format(
