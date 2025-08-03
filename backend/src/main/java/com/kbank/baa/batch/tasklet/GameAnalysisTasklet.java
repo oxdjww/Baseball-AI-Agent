@@ -39,11 +39,27 @@ public class GameAnalysisTasklet {
             log.error("[GameAnalysis] recordData 없음 → gameId={}", gameId);
             return;
         }
+        JsonNode recordData     = root.path("result").path("recordData");
+        JsonNode etcRecords     = recordData.path("etcRecords");
+        JsonNode todayKeyStats  = recordData.path("todayKeyStats");
+        JsonNode pitchingResult = recordData.path("pitchingResult");
 
         // 2) AI 프롬프트 생성 및 호출
-        JsonNode recordData = root.path("result").path("recordData");
         String prompt = String.format(
-                "%s) %s 경기 데이터... etcRecords, todayKeyStats, pitchingResult 포함", dateLabel, schedule.getStadium()
+                "%s) %s 경기의 상세 JSON 데이터입니다.\n" +
+                        "아래 JSON에서 etcRecords, todayKeyStats, pitchingResult만 추출했습니다.\n\n" +
+                        "1) 승리팀(%s)의 주요 승리 요인\n" +
+                        "2) 패배팀(%s)의 주요 패배 요인\n" +
+                        "을 간결히 분석·요약해줘.\n\n" +
+                        "etcRecords: %s\n\n" +
+                        "todayKeyStats: %s\n\n" +
+                        "pitchingResult: %s",
+                dateLabel, schedule.getStadium(),
+                info.getStatusCode().equals("4") ? info.getHomeTeamName() : info.getAwayTeamName(),
+                info.getStatusCode().equals("4") ? info.getAwayTeamName() : info.getHomeTeamName(),
+                etcRecords.toString(),
+                todayKeyStats.toString(),
+                pitchingResult.toString()
         );
         log.info("[GameAnalysis] AI 프롬프트 생성 → length={} chars", prompt.length());
         String analysis;
@@ -75,7 +91,7 @@ public class GameAnalysisTasklet {
             String formatted = String.format(
                     "오늘 경기 요약이 도착했어요! \n\n🏆 <b>1. 승리팀(%s) 요인</b>\n%s\n\n" +
                             "💔 <b>2. 패패팀(%s) 요인</b>\n%s\n\n" +
-                            "🔧 <b>3. 보완사항</b>\n%s",
+                            "⚾️ <b>3. 한줄 요약</b>\n%s",
                     winTeam, part1,
                     loseTeam, part2,
                     part3
