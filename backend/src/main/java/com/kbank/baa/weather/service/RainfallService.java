@@ -64,7 +64,7 @@ public class RainfallService {
     }
 
     private String[] splitCsv(String line) {
-        return line.split("\\s*,\\s*");
+        return line.trim().split("\\s+");
     }
 
     private int findIndex(String[] arr, String key) {
