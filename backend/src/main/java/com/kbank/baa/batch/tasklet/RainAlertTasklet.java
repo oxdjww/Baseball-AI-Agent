@@ -66,13 +66,13 @@ public class RainAlertTasklet implements Tasklet {
         if (rain >= thresholdMm) {
             log.info("rain >= thresholdMm ({} ≥ {}), 우천취소 가능성 메시지 생성", rain, thresholdMm);
             text = String.format(
-                    "<b>님, %s %d시간 전 강수량 %.1fmm\n우천취소 가능성 있어요!<b> ☔️",
+                    "<b>%s %d시간 전 강수량 %.1fmm\n우천취소 가능성 있어요!</b> ☔️",
                     vs, hoursBefore, rain
             );
         } else {
             log.info("rain < thresholdMm ({} < {}), 관전 권장 메시지 생성", rain, thresholdMm);
             text = String.format(
-                    "님, %s %d시간 전 강수량 %.1fmm\n비 걱정 없어요! 즐겁게 관전하세요! ⚾",
+                    " %s %d시간 전 강수량 %.1fmm\n비 걱정 없어요! 즐겁게 관전하세요! ⚾",
                     vs, hoursBefore, rain
             );
         }

@@ -53,7 +53,7 @@ public class RainAlertTestController {
     @GetMapping("/today/rain-alert")
     public String testAlert() {
         // 오늘 첫 번째 경기 하나를 불러와서
-        List<ScheduledGame> scheduledGames = apiClient.fetchScheduledGames(LocalDate.now().plusDays(1), LocalDate.now().plusDays(1));
+        List<ScheduledGame> scheduledGames = apiClient.fetchScheduledGames(LocalDate.now(), LocalDate.now());
         // “1시간 전” 기준으로 즉시 실행
         for (ScheduledGame scheduledGame : scheduledGames) {
             rainTasklet.executeForGame(scheduledGame, 1, /*thresholdMm=*/5);

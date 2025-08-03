@@ -8,7 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @Slf4j
@@ -22,65 +23,79 @@ public class RainfallService {
     @Value("${kma.api.key}")
     private String apiKey;
 
-    /**
-     * 팀 코드로 최근 강수량 조회 (STN 기반)
-     */
     public double getRainfallByTeam(String teamCode) {
         Team team = Team.of(teamCode);
         String raw = fetchRawCsv(team.getStn());
+        log.info("Received: {}", raw);
 
-        List<String> lines = List.of(raw.split("\\r?\\n")).stream()
-                .map(String::trim)
-                .filter(l -> !l.isEmpty() && !l.startsWith("#"))
-                .toList();
+        String[] header = null;
+        String[] data = null;
 
-        if (lines.size() < 2) {
-            log.warn("강수량 데이터 없음 (team={}, resp={})", teamCode, raw);
+        for (String line : raw.split("\\r?\\n")) {
+            String t = line.stripLeading();
+            // 1) 헤더 라인: "# YYMMDDHHMI STN ... RN RN RN"
+            if (t.startsWith("#") && t.contains("YYMMDDHHMI")) {
+                header = splitCsv(t.substring(1).trim());
+            }
+            // 2) 데이터 라인: 숫자로 시작하는 실제 관측값
+            else if (!t.isEmpty() && Character.isDigit(t.charAt(0))) {
+                data = splitCsv(t.trim());
+            }
+        }
+
+        if (header == null || data == null) {
+            log.warn("파싱 실패: header={} data={}", header, data);
             return 0.0;
         }
 
-        String[] header = splitCsv(lines.get(0));
-        String[] data = splitCsv(lines.get(1));
-        int idx = findIndex(header, COLUMN_RN);
-
-        if (idx < 0 || idx >= data.length) {
-            log.error("RN 컬럼 누락 또는 인덱스 범위 초과 (idx={}, header={})", idx, lines.get(0));
-            return 0.0;
+        // RN 컬럼 위치 전부 찾아서 최대값 추출
+        double maxRain = -1.0;
+        for (int i = 0; i < header.length; i++) {
+            if (COLUMN_RN.equals(header[i]) && i < data.length) {
+                double v = parseDouble(data[i], -1.0);
+                if (v >= 0 && v > maxRain) {
+                    maxRain = v;
+                }
+            }
         }
 
-        return parseDouble(data[idx].trim(), 0.0);
+        if (maxRain < 0) {
+            log.warn("RN 파싱 실패: header={} / data={}", String.join(" ", header), String.join(" ", data));
+            return 0.0;
+        }
+        return maxRain;
+    }
+
+    private String formatTmToHour() {
+        return LocalDateTime.now()
+                .withMinute(0)
+                .withSecond(0)
+                .format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
     }
 
     private String fetchRawCsv(int stn) {
-        return rest.getForObject(
-                UriComponentsBuilder
-                        .fromHttpUrl(API_URL)
-                        .queryParam("stn", stn)
-                        .queryParam("help", 0)
-                        .queryParam("authKey", apiKey)
-                        .toUriString(),
-                String.class
-        );
+        String tm = formatTmToHour();  // 매 시 정각으로 고정
+        String url = UriComponentsBuilder
+                .fromHttpUrl(API_URL)
+                .queryParam("stn", stn)
+                .queryParam("tm", tm)
+                .queryParam("help", 0)
+                .queryParam("authKey", apiKey)
+                .toUriString();
+
+        log.debug("KMA 요청 URL: {}", url);
+        return rest.getForObject(url, String.class);
     }
 
     private String[] splitCsv(String line) {
-        return line.trim().split("\\s+");
-    }
-
-    private int findIndex(String[] arr, String key) {
-        for (int i = 0; i < arr.length; i++) {
-            if (key.equals(arr[i].trim())) {
-                return i;
-            }
-        }
-        return -1;
+        return line.split("\\s+");
     }
 
     private double parseDouble(String s, double fallback) {
         try {
             return Double.parseDouble(s);
         } catch (NumberFormatException e) {
-            log.warn("숫자 파싱 실패 '{}', default={}", s, fallback);
+            log.warn("숫자 파싱 실패 '{}'", s);
             return fallback;
         }
     }
