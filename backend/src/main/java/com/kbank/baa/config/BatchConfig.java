@@ -1,6 +1,5 @@
 package com.kbank.baa.config;
 
-import com.kbank.baa.batch.tasklet.GameAnalysisTasklet;
 import com.kbank.baa.batch.tasklet.RainAlertTasklet;
 import com.kbank.baa.batch.tasklet.RealTimeAlertTasklet;
 import org.springframework.batch.core.Job;
@@ -16,22 +15,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 @EnableBatchProcessing
 @Configuration
 public class BatchConfig {
-
-    @Bean
-    public Step gameAnalysisStep(JobRepository jobRepository,
-                                 PlatformTransactionManager tm) {
-        return new StepBuilder("gameAnalysisStep", jobRepository)
-                .tasklet(new GameAnalysisTasklet(), tm)
-                .build();
-    }
-
-    @Bean
-    public Job dailyGameAnalysisJob(JobRepository jobRepository,
-                                    Step gameAnalysisStep) {
-        return new JobBuilder("dailyGameAnalysisJob", jobRepository)
-                .start(gameAnalysisStep)
-                .build();
-    }
 
     @Bean
     public Step rainAlertStep(JobRepository jobRepository,

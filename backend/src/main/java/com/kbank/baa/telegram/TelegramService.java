@@ -2,6 +2,7 @@ package com.kbank.baa.telegram;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -23,14 +24,20 @@ public class TelegramService {
         body.add("chat_id", chatId);
         body.add("text", textWithName);
         body.add("parse_mode", "HTML");
-        try {
-            log.info("##### Telegram으로 메시지 전송 시도: url={}, chatId={}, textWithName={}", url, chatId, textWithName);
-        } catch (Exception e) {
-            log.debug("##### Telegram 메시지 전송 중 에러 발생 {}", e.getMessage());
-            e.printStackTrace();
-        }
+        // 전송 시도 로깅
+        log.info("→ [TelegramService] sendMessage 호출 시작: chatId={}, name={}, textPreview={}...",
+                chatId, name,
+                textWithName.length() > 50 ? textWithName.substring(0, 50) : textWithName);
 
-        rt.postForEntity(url, body, String.class);
+        try {
+            ResponseEntity<String> resp = rt.postForEntity(url, body, String.class);
+            // 응답 로깅
+            log.info("← [TelegramService] sendMessage 응답: statusCode={}, body={}",
+                    resp.getStatusCodeValue(), resp.getBody());
+        } catch (Exception ex) {
+            // 예외 로깅
+            log.error("✖ [TelegramService] sendMessage 실패: chatId={}, error={}", chatId, ex.getMessage(), ex);
+        }
     }
 
     // 단체방 태그 전송

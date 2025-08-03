@@ -16,18 +16,7 @@ import java.util.UUID;
 public class BatchScheduler {
 
     private final JobLauncher jobLauncher;
-    private final Job dailyGameAnalysisJob;
     private final Job realTimeAlertJob;
-
-    // 매일 자정에 배치 테스트(job 이름만 달라서 재사용 가능)
-    @Scheduled(cron = "0 45 23 * * *")
-    public void runDailyGameAnalysis() throws Exception {
-        jobLauncher.run(dailyGameAnalysisJob,
-                new JobParametersBuilder()
-                        .addLong("time", System.currentTimeMillis())
-                        .toJobParameters());
-    }
-
     // TODO: AI 분석 Job 추가 필요
 
 //    @Scheduled(fixedDelay = 300_000) // 5분, 테스트용

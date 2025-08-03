@@ -9,4 +9,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     List<Member> findByNotifyRealTimeAlertTrue();
 
     List<Member> findBySupportTeamAndNotifyRainAlertTrue(Team supportTeam);
+
+    List<Member> findByNotifyGameAnalysisTrue();
 }
