@@ -39,28 +39,41 @@ public class GameAnalysisTasklet {
             log.error("[GameAnalysis] recordData 없음 → gameId={}", gameId);
             return;
         }
-        JsonNode recordData     = root.path("result").path("recordData");
-        JsonNode etcRecords     = recordData.path("etcRecords");
-        JsonNode todayKeyStats  = recordData.path("todayKeyStats");
+        JsonNode recordData = root.path("result").path("recordData");
+        JsonNode etcRecords = recordData.path("etcRecords");
+        JsonNode todayKeyStats = recordData.path("todayKeyStats");
         JsonNode pitchingResult = recordData.path("pitchingResult");
 
         // 2) AI 프롬프트 생성 및 호출
         String prompt = String.format(
                 "%s) %s 경기의 상세 JSON 데이터입니다.\n" +
-                        "아래 JSON에서 etcRecords, todayKeyStats, pitchingResult만 추출했습니다.\n\n" +
+                        "etcRecords, todayKeyStats, pitchingResult만 추출했습니다.\n\n" +
+                        "아래 JSON 필드를 참고하여, 승리팀(%s)과 패배팀(%s)의 주요 요인(결정적 사건, 핵심 지표, 결정 투수 성과 등)을 자유롭게 파악한 뒤\n" +
+                        "다음 형식으로 간결히 요약·정리해 주세요. 요인 개수에 제한은 없습니다.\n\n" +
                         "1) 승리팀(%s)의 주요 승리 요인\n" +
+                        "- 요인 A\n" +
+                        "- 요인 B\n" +
+                        "- …\n\n" +
                         "2) 패배팀(%s)의 주요 패배 요인\n" +
-                        "을 간결히 분석·요약해줘.\n\n" +
+                        "- 요인 A\n" +
+                        "- 요인 B\n" +
+                        "- …\n\n" +
                         "etcRecords: %s\n\n" +
                         "todayKeyStats: %s\n\n" +
                         "pitchingResult: %s",
-                dateLabel, schedule.getStadium(),
+                dateLabel,
+                schedule.getStadium(),
+                // 승·패 팀 이름
+                info.getStatusCode().equals("4") ? info.getHomeTeamName() : info.getAwayTeamName(),
+                info.getStatusCode().equals("4") ? info.getAwayTeamName() : info.getHomeTeamName(),
+                // 반복해서 이름 넣기
                 info.getStatusCode().equals("4") ? info.getHomeTeamName() : info.getAwayTeamName(),
                 info.getStatusCode().equals("4") ? info.getAwayTeamName() : info.getHomeTeamName(),
                 etcRecords.toString(),
                 todayKeyStats.toString(),
                 pitchingResult.toString()
         );
+
         log.info("[GameAnalysis] AI 프롬프트 생성 → length={} chars", prompt.length());
         String analysis;
         try {
