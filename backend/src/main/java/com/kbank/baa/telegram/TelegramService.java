@@ -32,8 +32,8 @@ public class TelegramService {
         try {
             ResponseEntity<String> resp = rt.postForEntity(url, body, String.class);
             // 응답 로깅
-            log.info("← [TelegramService] sendMessage 응답: statusCode={}, body={}",
-                    resp.getStatusCodeValue(), resp.getBody());
+            log.info("← [TelegramService] sendMessage 응답: {} 님께 메시지 전송 완료. statusCode={}",
+                    name, resp.getStatusCodeValue());
         } catch (Exception ex) {
             // 예외 로깅
             log.error("✖ [TelegramService] sendMessage 실패: chatId={}, error={}", chatId, ex.getMessage(), ex);
