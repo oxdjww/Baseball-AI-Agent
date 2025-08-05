@@ -3,6 +3,7 @@ package com.kbank.baa.batch.tasklet;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.MemberRepository;
+import com.kbank.baa.admin.Team;
 import com.kbank.baa.sports.RealtimeGameInfo;
 import com.kbank.baa.sports.ScheduledGame;
 import com.kbank.baa.telegram.TelegramService;
@@ -46,7 +47,8 @@ public class GameAnalysisTasklet {
 
         // 2) AI 프롬프트 생성 및 호출
         String prompt = String.format(
-                "%s) %s 경기의 상세 JSON 데이터입니다.\n" +
+                "※ **응답에서는 ‘etcRecords’, ‘todayKeyStats’, ‘pitchingResult’ 같은 변수명이나 JSON 필드를 일절 언급하지 말고**, 자연스럽고 깔끔한 한국어 문장으로만 요약해 주세요.\n\n" +
+                        "%s) %s 경기의 상세 JSON 데이터입니다.\n" +
                         "etcRecords, todayKeyStats, pitchingResult만 추출했습니다.\n\n" +
                         "아래 JSON 필드를 참고하여, 승리팀(%s)과 패배팀(%s)의 주요 요인(결정적 사건, 핵심 지표, 결정 투수 성과 등)을 자유롭게 파악한 뒤\n" +
                         "다음 형식으로 간결히 요약·정리해 주세요. 요인 개수에 제한은 없습니다.\n\n" +
@@ -95,20 +97,32 @@ public class GameAnalysisTasklet {
             if (!(isHome || isAway)) continue;
 
             // 분석 응답 포맷팅
-            String[] parts = analysis.split("\n\n", 3);
-            String part1 = parts.length > 0 ? parts[0] : analysis;
-            String part2 = parts.length > 1 ? parts[1] : "";
-            String part3 = parts.length > 2 ? parts[2] : "";
+            // 분석 응답 포맷팅
+// 한 줄 요약(3번째 파트)은 빼고, 승/패팀 요인만 취급
+            String[] parts = analysis.split("\n\n", 2);
+            String winFactors = parts[0];
+            String loseFactors = parts.length > 1 ? parts[1] : "";
+
             String winTeam = info.getStatusCode().equals("4") ? schedule.getHomeTeamName() : schedule.getAwayTeamName();
             String loseTeam = info.getStatusCode().equals("4") ? schedule.getAwayTeamName() : schedule.getHomeTeamName();
+
+            // 최종 스코어 추출 (예시: awayScore, homeScore 변수로 가정)
+            int awayScore = info.getAwayScore();
+            int homeScore = info.getHomeScore();
+
             String formatted = String.format(
-                    "오늘 경기 요약이 도착했어요! \n\n🏆 <b>1. 승리팀(%s) 요인</b>\n%s\n\n" +
-                            "💔 <b>2. 패패팀(%s) 요인</b>\n%s\n\n" +
-                            "⚾️ <b>3. 한줄 요약</b>\n%s",
-                    winTeam, part1,
-                    loseTeam, part2,
-                    part3
+                    "오늘 경기 요약이 도착했어요!\n" +
+                            "최종 스코어: %s %d : %d %s\n\n" +
+                            "🏆 <b>1. 승리팀(%s) 요인</b>\n%s\n\n" +
+                            "💔 <b>2. 패배팀(%s) 요인</b>\n%s",
+                    Team.getDisplayNameByCode(schedule.getAwayTeamCode()),  // 원정팀 이름
+                    awayScore,                                            // 원정팀 점수
+                    homeScore,                                            // 홈팀 점수
+                    Team.getDisplayNameByCode(schedule.getHomeTeamCode()),// 홈팀 이름
+                    winTeam, winFactors,
+                    loseTeam, loseFactors
             );
+
             log.info("[GameAnalysis] sendMessage 호출 직전 → chatId={}, preview=[{}]...",
                     m.getTelegramId(), formatted.substring(0, Math.min(40, formatted.length())));
             telegramService.sendMessage(m.getTelegramId(), m.getName(), formatted);
