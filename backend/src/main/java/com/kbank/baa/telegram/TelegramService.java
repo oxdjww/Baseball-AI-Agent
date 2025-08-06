@@ -1,5 +1,7 @@
 package com.kbank.baa.telegram;
 
+import com.kbank.baa.admin.Member;
+import com.kbank.baa.admin.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -8,12 +10,15 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class TelegramService {
     private final TelegramProperties props;
     private final RestTemplate rt = new RestTemplate();
+    private final MemberRepository memberRepository;
 
     // 멤버별 chatId로 전송
     public void sendMessage(String chatId, String name, String text) {
@@ -60,5 +65,18 @@ public class TelegramService {
         body.add("parse_mode", "HTML");
 
         rt.postForEntity(url, body, String.class);
+    }
+
+    public void sendMessageToAllMembers(String message) {
+        List<Member> members = memberRepository.findAll();
+        String fullText = String.format("<b>새로운 공지사항이 있어요!</b>\n\n%s\n\n감사합니다.", message);
+
+        for (Member member : members) {
+            sendMessage(
+                    member.getTelegramId(),
+                    member.getName(),
+                    fullText
+            );
+        }
     }
 }
