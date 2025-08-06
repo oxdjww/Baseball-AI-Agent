@@ -40,14 +40,25 @@ public class GameAnalysisTasklet {
             log.error("[GameAnalysis] recordData 없음 → gameId={}", gameId);
             return;
         }
+        // root record
         JsonNode recordData = root.path("result").path("recordData");
+
+        // child records
         JsonNode etcRecords = recordData.path("etcRecords");
         JsonNode todayKeyStats = recordData.path("todayKeyStats");
         JsonNode pitchingResult = recordData.path("pitchingResult");
+        JsonNode scoreBoard = recordData.path("scoreBoard");
+        JsonNode battersBoxscore = recordData.path("battersBoxscore");
+        JsonNode pitchersBoxscore = recordData.path("pitchersBoxscore");
+        JsonNode teamPitchingBoxscore = recordData.path("teamPitchingBoxscore");
+        JsonNode homeStandings = recordData.path("homeStandings");
+        JsonNode awayStandings = recordData.path("awayStandings");
+        JsonNode gameInfo = recordData.path("gameInfo");
+
 
         // 2) AI 프롬프트 생성 및 호출
         String prompt = String.format(
-                "※ **응답에서는 ‘etcRecords’, ‘todayKeyStats’, ‘pitchingResult’ 같은 변수명이나 JSON 필드를 일절 언급하지 말고**, 자연스럽고 깔끔한 한국어 문장으로만 요약해 주세요.\n\n" +
+                "※ **응답에서는 ‘etcRecords’, ‘todayKeyStats’, ‘pitchingResult’ 등등 같은 변수명이나 JSON 필드를 일절 언급하지 말고**, 자연스럽고 깔끔한 한국어 문장으로만 요약해 주세요.\n\n" +
                         "%s) %s 경기의 상세 JSON 데이터입니다.\n" +
                         "최종 스코어: %s팀 %d : %d %s팀 이며,\n" +
                         "etcRecords, todayKeyStats, pitchingResult만 추출했습니다.\n\n" +
@@ -63,15 +74,28 @@ public class GameAnalysisTasklet {
                         "- …\n\n" +
                         "etcRecords: %s\n\n" +
                         "todayKeyStats: %s\n\n" +
-                        "pitchingResult: %s",
+                        "pitchingResult: %s\n\n" +
+                        "scoreBoard: %s\n\n" +
+                        "battersBoxscore: %s\n\n" +
+                        "pitchersBoxscore: %s\n\n" +
+                        "teamPitchingBoxscore: %s\n\n" +
+                        "homeStandings: %s\n\n" +
+                        "awayStandings: %s\n\n" +
+                        "gameInfo: %s",
                 dateLabel,
                 schedule.getStadium(),
-                // 어웨이-홈 팀 이름
                 info.getAwayTeamName(), info.getAwayScore(),
                 info.getHomeScore(), info.getHomeTeamName(),
                 etcRecords.toString(),
                 todayKeyStats.toString(),
-                pitchingResult.toString()
+                pitchingResult.toString(),
+                scoreBoard.toString(),
+                battersBoxscore.toString(),
+                pitchersBoxscore.toString(),
+                teamPitchingBoxscore.toString(),
+                homeStandings.toString(),
+                awayStandings.toString(),
+                gameInfo.toString()
         );
 
         log.info("[GameAnalysis] AI 프롬프트 생성 → length={} chars", prompt.length());
