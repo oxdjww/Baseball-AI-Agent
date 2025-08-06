@@ -49,15 +49,15 @@ public class GameAnalysisTasklet {
         String prompt = String.format(
                 "※ **응답에서는 ‘etcRecords’, ‘todayKeyStats’, ‘pitchingResult’ 같은 변수명이나 JSON 필드를 일절 언급하지 말고**, 자연스럽고 깔끔한 한국어 문장으로만 요약해 주세요.\n\n" +
                         "%s) %s 경기의 상세 JSON 데이터입니다.\n" +
-                        "최종 스코어: %s %d : %d %s 이며,\n" +
+                        "최종 스코어: %s팀 %d : %d %s팀 이며,\n" +
                         "etcRecords, todayKeyStats, pitchingResult만 추출했습니다.\n\n" +
-                        "아래 JSON 필드를 참고하여, 승리팀(%s)과 패배팀(%s)의 주요 요인(결정적 사건, 핵심 지표, 결정 투수 성과 등)을 자유롭게 파악한 뒤\n" +
+                        "아래 JSON 필드를 참고하여, 승리팀과 패배팀의 주요 요인(결정적 사건, 핵심 지표, 결정 투수 성과 등)을 자유롭게 파악한 뒤\n" +
                         "다음 형식으로 간결히 요약·정리해 주세요. 요인 개수에 제한은 없습니다.\n\n" +
-                        "1) 승리팀(%s)의 주요 승리 요인\n" +
+                        "1) 승리팀의 주요 승리 요인\n" +
                         "- 요인 A\n" +
                         "- 요인 B\n" +
                         "- …\n\n" +
-                        "2) 패배팀(%s)의 주요 패배 요인\n" +
+                        "2) 패배팀의 주요 패배 요인\n" +
                         "- 요인 A\n" +
                         "- 요인 B\n" +
                         "- …\n\n" +
@@ -66,12 +66,9 @@ public class GameAnalysisTasklet {
                         "pitchingResult: %s",
                 dateLabel,
                 schedule.getStadium(),
-                // 승·패 팀 이름
-                info.getStatusCode().equals("4") ? info.getHomeTeamName() : info.getAwayTeamName(),
-                info.getStatusCode().equals("4") ? info.getAwayTeamName() : info.getHomeTeamName(),
-                // 반복해서 이름 넣기
-                info.getStatusCode().equals("4") ? info.getHomeTeamName() : info.getAwayTeamName(),
-                info.getStatusCode().equals("4") ? info.getAwayTeamName() : info.getHomeTeamName(),
+                // 어웨이-홈 팀 이름
+                info.getAwayTeamName(), info.getAwayScore(),
+                info.getHomeScore(), info.getHomeTeamName(),
                 etcRecords.toString(),
                 todayKeyStats.toString(),
                 pitchingResult.toString()
