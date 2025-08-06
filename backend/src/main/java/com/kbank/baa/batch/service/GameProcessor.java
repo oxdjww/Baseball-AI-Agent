@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -31,6 +32,15 @@ public class GameProcessor {
     public void process(ScheduledGame schedule, List<Member> members) {
         var gameId = schedule.getGameId();
         log.info("########## processGame 시작 → gameId={} ##########", gameId);
+
+        // 🔹 여기서 필터링: 홈/어웨이 팀을 응원하는 멤버만 members에 재할당
+        members = members.stream()
+                .filter(m ->
+                        m.getSupportTeam().name().equals(schedule.getHomeTeamCode()) ||
+                                m.getSupportTeam().name().equals(schedule.getAwayTeamCode())
+                )
+                .collect(Collectors.toList());
+
         RealtimeGameInfo info;
         try {
             info = apiClient.fetchGameInfo(gameId);
@@ -55,7 +65,6 @@ public class GameProcessor {
                         gameId, analysisTime);
             }
         } else {
-//            periodicNotifier.notify(schedule, members, info);
             leadNotifier.notify(schedule, members, info);
         }
 
