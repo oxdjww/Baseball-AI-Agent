@@ -55,60 +55,115 @@ public class GameAnalysisTasklet {
         JsonNode awayStandings = recordData.path("awayStandings");
         JsonNode gameInfo = recordData.path("gameInfo");
 
+        String winner, loser;
+        int winnerScore, loserScore;
+        int awayScore = info.getAwayScore();
+        int homeScore = info.getHomeScore();
 
-        // 2) AI 프롬프트 생성 및 호출
-        String prompt = String.format(
-                "※ **응답에서는 ‘etcRecords’, ‘todayKeyStats’, ‘pitchingResult’ 등등 같은 변수명이나 JSON 필드를 일절 언급하지 말고**, 자연스럽고 깔끔한 한국어 문장으로만 요약해 주세요.\n\n" +
-                        "%s) %s 경기의 상세 JSON 데이터입니다.\n" +
-                        "최종 스코어: %s팀 %d : %d %s팀 이며,\n" +
-                        "etcRecords, todayKeyStats, pitchingResult만 추출했습니다.\n\n" +
-                        "아래 JSON 필드를 참고하여, 승리팀과 패배팀의 주요 요인(결정적 사건, 핵심 지표, 결정 투수 성과 등)을 자유롭게 파악한 뒤\n" +
-                        "다음 형식으로 간결히 요약·정리해 주세요. 요인 개수에 제한은 없습니다.\n\n" +
-                        "1) 승리팀의 주요 승리 요인\n" +
-                        "- 요인 A\n" +
-                        "- 요인 B\n" +
-                        "- …\n\n" +
-                        "2) 패배팀의 주요 패배 요인\n" +
-                        "- 요인 A\n" +
-                        "- 요인 B\n" +
-                        "- …\n\n" +
-                        "etcRecords: %s\n\n" +
-                        "todayKeyStats: %s\n\n" +
-                        "pitchingResult: %s\n\n" +
-                        "scoreBoard: %s\n\n" +
-                        "battersBoxscore: %s\n\n" +
-                        "pitchersBoxscore: %s\n\n" +
-                        "teamPitchingBoxscore: %s\n\n" +
-                        "homeStandings: %s\n\n" +
-                        "awayStandings: %s\n\n" +
-                        "gameInfo: %s",
-                dateLabel,
-                schedule.getStadium(),
-                info.getAwayTeamName(), info.getAwayScore(),
-                info.getHomeScore(), info.getHomeTeamName(),
-                etcRecords.toString(),
-                todayKeyStats.toString(),
-                pitchingResult.toString(),
-                scoreBoard.toString(),
-                battersBoxscore.toString(),
-                pitchersBoxscore.toString(),
-                teamPitchingBoxscore.toString(),
-                homeStandings.toString(),
-                awayStandings.toString(),
-                gameInfo.toString()
-        );
+        // 2) 승/패/무 결정
+        if (awayScore > homeScore) {
+            winner = info.getAwayTeamName();
+            loser  = info.getHomeTeamName();
+            winnerScore = awayScore;
+            loserScore = homeScore;
+        } else if (homeScore > awayScore) {
+            winner = info.getHomeTeamName();
+            loser  = info.getAwayTeamName();
+            winnerScore = homeScore;
+            loserScore = awayScore;
+        } else {
+            winner = "무승부";
+            loser  = "무승부";
+            winnerScore = homeScore;
+            loserScore = awayScore;
+        }
 
-        log.info("[GameAnalysis] AI 프롬프트 생성 → length={} chars", prompt.length());
+        // 3) AI 프롬프트 생성 (모든 필드 포함)
+        String prompt;
+        if (!"무승부".equals(winner)) {
+            prompt = String.format(
+                    "※ **응답에서는 ‘etcRecords’, ‘todayKeyStats’, ‘pitchingResult’ 등 같은 변수명이나 JSON 필드를 일절 언급하지 말고**, 자연스럽고 깔끔한 한국어 문장으로만 요약해 주세요.\n\n" +
+                            "%s 경기의 상세 JSON 데이터입니다.\n" +
+                            "최종 스코어: %s %d : %d %s, 승리팀은 %s, 패배팀은 %s입니다.\n\n" +
+                            "아래 JSON 필드를 참고하여, 승리팀과 패배팀의 주요 요인(결정적 사건, 핵심 지표, 결정 투수 성과 등)을 자유롭게 파악한 뒤\n" +
+                            "다음 형식으로 간결히 요약·정리해 주세요. 요인 개수에 제한은 없습니다.\n" +
+                            "※ **중요**: 선수의 소속팀을 신중히 고려하여 요인을 작성해 주세요.\n" +
+                            "※ **중요**: JSON 외의 정보는 절대 임의로 생성하지 마세요..\n" +
+                            "1) 승리팀의 주요 승리 요인\n" +
+                            "- …\n\n" +
+                            "2) 패배팀의 주요 패배 요인\n" +
+                            "- …\n\n" +
+                            "etcRecords: %s\n\n" +
+                            "todayKeyStats: %s\n\n" +
+                            "pitchingResult: %s\n\n" +
+                            "scoreBoard: %s\n\n" +
+                            "battersBoxscore: %s\n\n" +
+                            "pitchersBoxscore: %s\n\n" +
+                            "teamPitchingBoxscore: %s\n\n" +
+                            "homeStandings: %s\n\n" +
+                            "awayStandings: %s\n\n" +
+                            "gameInfo: %s",
+                    schedule.getStadium(),
+                    info.getAwayTeamName(), awayScore,
+                    homeScore, info.getHomeTeamName(),
+                    winner, loser,
+                    etcRecords.toString(),
+                    todayKeyStats.toString(),
+                    pitchingResult.toString(),
+                    scoreBoard.toString(),
+                    battersBoxscore.toString(),
+                    pitchersBoxscore.toString(),
+                    teamPitchingBoxscore.toString(),
+                    homeStandings.toString(),
+                    awayStandings.toString(),
+                    gameInfo.toString()
+            );
+        } else {
+            prompt = String.format(
+                    "※ **응답에서는 변수명이나 JSON 필드를 언급하지 말고**, 자연스럽고 깔끔한 한국어로 요약해 주세요.\n\n" +
+                            "%s 경기의 상세 JSON 데이터입니다.\n" +
+                            "최종 스코어: %s %d : %d %s, 결과는 무승부입니다.\n\n" +
+                            "아래 JSON 필드를 참고하여, 양 팀의 주요 활약 포인트를 자유롭게 정리해 주세요.\n" +
+                            "※ **중요**: 선수의 소속팀을 신중히 고려하여 요인을 작성해 주세요.\n" +
+                            "※ **중요**: JSON 외의 정보는 절대 임의로 생성하지 마세요..\n" +
+                            "etcRecords: %s\n\n" +
+                            "todayKeyStats: %s\n\n" +
+                            "pitchingResult: %s\n\n" +
+                            "scoreBoard: %s\n\n" +
+                            "battersBoxscore: %s\n\n" +
+                            "pitchersBoxscore: %s\n\n" +
+                            "teamPitchingBoxscore: %s\n\n" +
+                            "homeStandings: %s\n\n" +
+                            "awayStandings: %s\n\n" +
+                            "gameInfo: %s",
+                    schedule.getStadium(),
+                    info.getAwayTeamName(), awayScore,
+                    homeScore, info.getHomeTeamName(),
+                    etcRecords.toString(),
+                    todayKeyStats.toString(),
+                    pitchingResult.toString(),
+                    scoreBoard.toString(),
+                    battersBoxscore.toString(),
+                    pitchersBoxscore.toString(),
+                    teamPitchingBoxscore.toString(),
+                    homeStandings.toString(),
+                    awayStandings.toString(),
+                    gameInfo.toString()
+            );
+        }
+
+        // 4) AI 호출 & 메시지 전송 (기존 로직 유지)
+        log.info("[GameAnalysis] Prompt: {}", prompt);
         String analysis;
         try {
             analysis = chatModel.call(prompt);
-            log.info("[GameAnalysis] AI 응답 수신 → length={} chars", analysis.length());
         } catch (Exception e) {
-            log.error("[GameAnalysis] AI 호출 실패: {}", e.getMessage(), e);
+            log.error("[GameAnalysis] AI 호출 실패", e);
             analysis = "⚠️ AI 분석 중 오류 발생";
         }
 
-        // 3) 대상 멤버 필터링 및 전송
+
+        // 5) 대상 멤버 필터링 및 전송
         List<Member> targets = memberRepo.findByNotifyGameAnalysisTrue();
         log.info("[GameAnalysis] 대상 멤버 수: {}명", targets.size());
         for (Member m : targets) {
@@ -120,17 +175,10 @@ public class GameAnalysisTasklet {
 
             // 분석 응답 포맷팅
             // 분석 응답 포맷팅
-// 한 줄 요약(3번째 파트)은 빼고, 승/패팀 요인만 취급
+            // 한 줄 요약(3번째 파트)은 빼고, 승/패팀 요인만 취급
             String[] parts = analysis.split("\n\n", 2);
             String winFactors = parts[0];
             String loseFactors = parts.length > 1 ? parts[1] : "";
-
-            String winTeam = info.getStatusCode().equals("4") ? schedule.getHomeTeamName() : schedule.getAwayTeamName();
-            String loseTeam = info.getStatusCode().equals("4") ? schedule.getAwayTeamName() : schedule.getHomeTeamName();
-
-            // 최종 스코어 추출 (예시: awayScore, homeScore 변수로 가정)
-            int awayScore = info.getAwayScore();
-            int homeScore = info.getHomeScore();
 
             String formatted = String.format(
                     "오늘 경기 요약이 도착했어요!\n" +
@@ -141,8 +189,8 @@ public class GameAnalysisTasklet {
                     awayScore,                                            // 원정팀 점수
                     homeScore,                                            // 홈팀 점수
                     Team.getDisplayNameByCode(schedule.getHomeTeamCode()),// 홈팀 이름
-                    winTeam, winFactors,
-                    loseTeam, loseFactors
+                    winner, winFactors,
+                    loser, loseFactors
             );
 
             log.info("[GameAnalysis] sendMessage 호출 직전 → chatId={}, preview=[{}]...",
@@ -150,6 +198,7 @@ public class GameAnalysisTasklet {
             telegramService.sendMessage(m.getTelegramId(), m.getName(), formatted);
             log.info("[GameAnalysis] sendMessage 완료 → chatId={}", m.getTelegramId());
         }
+
 
         log.info("##### GameAnalysis END → gameId={} #####", gameId);
     }
