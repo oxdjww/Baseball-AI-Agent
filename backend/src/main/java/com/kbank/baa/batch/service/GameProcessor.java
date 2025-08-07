@@ -54,7 +54,7 @@ public class GameProcessor {
 
         if (!"STARTED".equals(info.getStatusCode())) {
             statusLogger.log(schedule, info);
-            if ("ENDED".equals(info.getStatusCode()) && !gameEndChecker.contains(info.getGameId())) {
+            if (("ENDED".equals(info.getStatusCode()) || "RESULT".equals(info.getStatusCode())) && !gameEndChecker.contains(info.getGameId())) {
                 gameEndChecker.add(info.getGameId());
                 LocalDateTime analysisTime = LocalDateTime.now().plusHours(1);
                 Date when = Date.from(analysisTime.atZone(ZoneId.systemDefault()).toInstant());
