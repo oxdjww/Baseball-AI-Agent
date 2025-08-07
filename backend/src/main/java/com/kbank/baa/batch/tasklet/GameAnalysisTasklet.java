@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.MemberRepository;
 import com.kbank.baa.admin.Team;
+import com.kbank.baa.sports.GameRosterClient;
 import com.kbank.baa.sports.RealtimeGameInfo;
 import com.kbank.baa.sports.ScheduledGame;
 import com.kbank.baa.telegram.TelegramService;
@@ -24,6 +25,7 @@ public class GameAnalysisTasklet {
     private final OpenAiChatModel chatModel;
     private final MemberRepository memberRepo;
     private final TelegramService telegramService;
+    private final GameRosterClient gameRosterClient;
 
     public void execute(ScheduledGame schedule, RealtimeGameInfo info) {
         String gameId = schedule.getGameId();
@@ -63,20 +65,25 @@ public class GameAnalysisTasklet {
         // 2) 승/패/무 결정
         if (awayScore > homeScore) {
             winner = info.getAwayTeamName();
-            loser  = info.getHomeTeamName();
+            loser = info.getHomeTeamName();
             winnerScore = awayScore;
             loserScore = homeScore;
         } else if (homeScore > awayScore) {
             winner = info.getHomeTeamName();
-            loser  = info.getAwayTeamName();
+            loser = info.getAwayTeamName();
             winnerScore = homeScore;
             loserScore = awayScore;
         } else {
             winner = "무승부";
-            loser  = "무승부";
+            loser = "무승부";
             winnerScore = homeScore;
             loserScore = awayScore;
         }
+
+        List<String> awayTeamPlayers = gameRosterClient.fetchPlayerNamesByTeam(gameId, schedule.getAwayTeamName());
+        List<String> homeTeamPlayers = gameRosterClient.fetchPlayerNamesByTeam(gameId, schedule.getHomeTeamName());
+        String awayList = String.join(", ", awayTeamPlayers);
+        String homeList = String.join(", ", homeTeamPlayers);
 
         // 3) AI 프롬프트 생성 (모든 필드 포함)
         String prompt;
@@ -102,7 +109,10 @@ public class GameAnalysisTasklet {
                             "teamPitchingBoxscore: %s\n\n" +
                             "homeStandings: %s\n\n" +
                             "awayStandings: %s\n\n" +
-                            "gameInfo: %s",
+                            "gameInfo: %s\n\n" +
+                            "%s team members: %s\n\n" +
+                            "%s team members: %s\n\n"
+                    ,
                     schedule.getStadium(),
                     info.getAwayTeamName(), awayScore,
                     homeScore, info.getHomeTeamName(),
@@ -116,7 +126,9 @@ public class GameAnalysisTasklet {
                     teamPitchingBoxscore.toString(),
                     homeStandings.toString(),
                     awayStandings.toString(),
-                    gameInfo.toString()
+                    gameInfo.toString(),
+                    schedule.getAwayTeamName(), awayList,
+                    schedule.getHomeTeamName(), homeList
             );
         } else {
             prompt = String.format(
@@ -135,7 +147,10 @@ public class GameAnalysisTasklet {
                             "teamPitchingBoxscore: %s\n\n" +
                             "homeStandings: %s\n\n" +
                             "awayStandings: %s\n\n" +
-                            "gameInfo: %s",
+                            "gameInfo: %s\n\n" +
+                            "%s team members: %s\n\n" +
+                            "%s team members: %s\n\n"
+                    ,
                     schedule.getStadium(),
                     info.getAwayTeamName(), awayScore,
                     homeScore, info.getHomeTeamName(),
@@ -148,7 +163,9 @@ public class GameAnalysisTasklet {
                     teamPitchingBoxscore.toString(),
                     homeStandings.toString(),
                     awayStandings.toString(),
-                    gameInfo.toString()
+                    gameInfo.toString(),
+                    schedule.getAwayTeamName(), awayList,
+                    schedule.getHomeTeamName(), homeList
             );
         }
 
