@@ -1,10 +1,12 @@
 package com.kbank.baa.batch.service;
 
 import com.kbank.baa.admin.Member;
+import com.kbank.baa.admin.Team;
 import com.kbank.baa.batch.tasklet.GameAnalysisTasklet;
 import com.kbank.baa.sports.RealtimeGameInfo;
 import com.kbank.baa.sports.ScheduledGame;
 import com.kbank.baa.sports.SportsApiClient;
+import com.kbank.baa.telegram.TelegramService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.TaskScheduler;
@@ -28,6 +30,7 @@ public class GameProcessor {
     private final Set<String> gameEndChecker = new HashSet<>();
     private final TaskScheduler taskScheduler;
     private final GameAnalysisTasklet gameAnalysisTasklet;
+    private final TelegramService telegramService;
 
     public void process(ScheduledGame schedule, List<Member> members) {
         var gameId = schedule.getGameId();
@@ -60,6 +63,16 @@ public class GameProcessor {
                         () -> gameAnalysisTasklet.execute(schedule, info),
                         when
                 );
+
+                // 경기 종료 알림
+                String awayTeamCode = info.getAwayTeamCode();
+                String homeTeamCode = info.getHomeTeamCode();
+                String awayTeamName = Team.getDisplayNameByCode(awayTeamCode);
+                String homeTeamName = Team.getDisplayNameByCode(homeTeamCode);
+                String gameEndMessageAway = String.format("금일 %s와의 경기가 종료되었습니다.\n\n한 시간 뒤, Ai 게임 분석 레포트가 전송됩니다!\n\n감사합니다.", homeTeamName);
+                String gameEndMessageHome = String.format("금일 %s와의 경기가 종료되었습니다.\n\n한 시간 뒤, Ai 게임 분석 레포트가 전송됩니다!\n\n감사합니다.", awayTeamName);
+                telegramService.sendMessageToTeam(awayTeamCode, gameEndMessageAway);
+                telegramService.sendMessageToTeam(homeTeamCode, gameEndMessageHome);
 
                 log.info("##### → scheduled game analysis for {} at {} (1h after end)",
                         gameId, analysisTime);

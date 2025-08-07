@@ -24,7 +24,6 @@ public class RealtimeTestController {
             StepExecution dummyStepExecution = new StepExecution("dummyStep", null);
             StepContribution dummyContribution = new StepContribution(dummyStepExecution);
 
-            // null 대신 Mock ChunkContext (어차피 안씀)
             ChunkContext dummyChunkContext = new ChunkContext(new StepContext(dummyStepExecution));
 
             RepeatStatus status = tasklet.execute(dummyContribution, dummyChunkContext);

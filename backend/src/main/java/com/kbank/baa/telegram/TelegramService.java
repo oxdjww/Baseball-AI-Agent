@@ -2,6 +2,7 @@ package com.kbank.baa.telegram;
 
 import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.MemberRepository;
+import com.kbank.baa.admin.Team;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -45,26 +46,28 @@ public class TelegramService {
         }
     }
 
-    // 단체방 태그 전송
-    public void sendMessageWithMention(String chatId, String mentionId, String name, String text) {
-        String url = props.getApiUrl() + "sendMessage";
-
-        // mentionId가 null이거나 비어있지 않다면 멘션 처리
-        String formattedText;
-        if (mentionId != null && !mentionId.isBlank()) {
-            formattedText = String.format("👤 <a href=\"tg://user?id=%s\">%s</a> %s", mentionId, name, text);
-        } else {
-            formattedText = text; // 멘션이 없으면 그대로 전송
+    public void sendMessageToTeam(String teamCode, String text) {
+        Team team;
+        try {
+            team = Team.valueOf(teamCode);
+        } catch (IllegalArgumentException ex) {
+            log.warn("Invalid teamCode='{}'로 팀 조회 불가", teamCode);
+            return;
         }
 
-        log.info("########## Telegram으로 메시지 전송 시도: chatId={}, mentionId={}, text={}", chatId, mentionId, formattedText);
-
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("chat_id", chatId);
-        body.add("text", formattedText);
-        body.add("parse_mode", "HTML");
-
-        rt.postForEntity(url, body, String.class);
+        List<Member> supporters = memberRepository.findAllBySupportTeam(team);
+        if (supporters.isEmpty()) {
+            log.info("→ [TelegramService] 팀 {} 팬이 없어 메시지 스킵", team);
+            return;
+        }
+        
+        for (Member member : supporters) {
+            sendMessage(
+                    member.getTelegramId(),
+                    member.getName(),
+                    text
+            );
+        }
     }
 
     public void sendMessageToAllMembers(String message) {
