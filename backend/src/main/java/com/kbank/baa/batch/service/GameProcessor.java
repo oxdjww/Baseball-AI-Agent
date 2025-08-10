@@ -72,8 +72,8 @@ public class GameProcessor {
                 String homeTeamCode = info.getHomeTeamCode();
                 String awayTeamName = Team.getDisplayNameByCode(awayTeamCode);
                 String homeTeamName = Team.getDisplayNameByCode(homeTeamCode);
-                String gameEndMessageAway = String.format("금일 %s와의 경기가 종료되었습니다.\n\n한 시간 뒤, Ai 게임 분석 레포트가 전송됩니다!\n\n감사합니다.", homeTeamName);
-                String gameEndMessageHome = String.format("금일 %s와의 경기가 종료되었습니다.\n\n한 시간 뒤, Ai 게임 분석 레포트가 전송됩니다!\n\n감사합니다.", awayTeamName);
+                String gameEndMessageAway = String.format("🧢 금일 %s와의 경기가 종료되었습니다.\n\n⚾️ 1시간 뒤, Ai 게임 분석 레포트가 전송됩니다!\n\n감사합니다.", homeTeamName);
+                String gameEndMessageHome = String.format("🧢 금일 %s와의 경기가 종료되었습니다.\n\n⚾️ 1시간 뒤, Ai 게임 분석 레포트가 전송됩니다!\n\n감사합니다.", awayTeamName);
                 telegramService.sendMessageToTeam(awayTeamCode, gameEndMessageAway);
                 telegramService.sendMessageToTeam(homeTeamCode, gameEndMessageHome);
 
