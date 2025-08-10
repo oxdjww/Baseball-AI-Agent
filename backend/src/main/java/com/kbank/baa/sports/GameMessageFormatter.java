@@ -1,5 +1,6 @@
 package com.kbank.baa.sports;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.Team;
 import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
@@ -56,4 +57,91 @@ public class GameMessageFormatter {
             );
         }
     }
+
+    public String formatScoreboard(JsonNode scoreBoard) {
+        final int TEAM_COL = 4;   // "AWAY" / "HOME" 길이
+        final int TEAM_GAP = 2;   // 팀라벨-이닝 사이 간격
+        final int INN_W   = 2;    // 이닝/점수 폭 (두 자리 대응)
+        final int INN_GAP = 1;    // 이닝 칸 사이 공백
+        final int SUM_W   = 2;    // R/H/E/B 폭
+        final int SUM_GAP = 2;    // 이닝 블록 ↔ 합계 블록 간 공백
+        final String NP   = "-";  // 안 친 이닝
+
+        JsonNode rA = scoreBoard.path("rheb").path("away");
+        JsonNode rH = scoreBoard.path("rheb").path("home");
+        JsonNode iA = scoreBoard.path("inn").path("away");
+        JsonNode iH = scoreBoard.path("inn").path("home");
+
+        int innA = iA.isArray() ? iA.size() : 0;
+        int innH = iH.isArray() ? iH.size() : 0;
+        int INNINGS = Math.max(9, Math.max(innA, innH)); // 연장 포함
+
+        StringBuilder raw = new StringBuilder();
+
+        // 헤더
+        raw.append(padRightChars("", TEAM_COL)).append(repeat(' ', TEAM_GAP));
+        for (int i = 1; i <= INNINGS; i++) {
+            if (i > 1) raw.append(repeat(' ', INN_GAP));
+            raw.append(padLeft(String.valueOf(i), INN_W));
+        }
+        raw.append(repeat(' ', SUM_GAP))
+                .append(padLeft("R", SUM_W)).append(' ')
+                .append(padLeft("H", SUM_W)).append(' ')
+                .append(padLeft("E", SUM_W)).append(' ')
+                .append(padLeft("B", SUM_W))
+                .append('\n');
+
+        // AWAY
+        raw.append(padRightChars("AWAY", TEAM_COL)).append(repeat(' ', TEAM_GAP));
+        for (int i = 0; i < INNINGS; i++) {
+            if (i > 0) raw.append(repeat(' ', INN_GAP));
+            String v = (iA.isArray() && i < iA.size()) ? iA.get(i).asText() : NP;
+            raw.append(padLeft(v, INN_W));
+        }
+        raw.append(repeat(' ', SUM_GAP))
+                .append(padLeft(String.valueOf(rA.path("r").asInt(0)), SUM_W)).append(' ')
+                .append(padLeft(String.valueOf(rA.path("h").asInt(0)), SUM_W)).append(' ')
+                .append(padLeft(String.valueOf(rA.path("e").asInt(0)), SUM_W)).append(' ')
+                .append(padLeft(String.valueOf(rA.path("b").asInt(0)), SUM_W))
+                .append('\n');
+
+        // HOME
+        raw.append(padRightChars("HOME", TEAM_COL)).append(repeat(' ', TEAM_GAP));
+        for (int i = 0; i < INNINGS; i++) {
+            if (i > 0) raw.append(repeat(' ', INN_GAP));
+            String v = (iH.isArray() && i < iH.size()) ? iH.get(i).asText() : NP;
+            raw.append(padLeft(v, INN_W));
+        }
+        raw.append(repeat(' ', SUM_GAP))
+                .append(padLeft(String.valueOf(rH.path("r").asInt(0)), SUM_W)).append(' ')
+                .append(padLeft(String.valueOf(rH.path("h").asInt(0)), SUM_W)).append(' ')
+                .append(padLeft(String.valueOf(rH.path("e").asInt(0)), SUM_W)).append(' ')
+                .append(padLeft(String.valueOf(rH.path("b").asInt(0)), SUM_W));
+
+        // 텔레그램 HTML <pre>로 전송 (parse_mode=HTML 필수)
+        return "<pre>" + escapeHtml(raw.toString()) + "</pre>";
+    }
+
+
+    // --- helpers (심플, 문자수 기준) ---
+    private static String padLeft(String s, int w) {
+        if (s == null) s = "";
+        int pad = Math.max(0, w - s.length());
+        return repeat(' ', pad) + s;
+    }
+    private static String padRightChars(String s, int w) {
+        if (s == null) s = "";
+        if (s.length() > w) s = s.substring(0, w);
+        int pad = w - s.length();
+        return s + repeat(' ', pad);
+    }
+    private static String repeat(char c, int n) {
+        StringBuilder sb = new StringBuilder(n);
+        for (int i = 0; i < n; i++) sb.append(c);
+        return sb.toString();
+    }
+    private static String escapeHtml(String s) {
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
 }

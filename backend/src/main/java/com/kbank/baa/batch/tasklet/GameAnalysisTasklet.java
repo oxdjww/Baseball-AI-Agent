@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.MemberRepository;
 import com.kbank.baa.admin.Team;
+import com.kbank.baa.sports.GameMessageFormatter;
 import com.kbank.baa.sports.GameRosterClient;
 import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
 import com.kbank.baa.sports.dto.ScheduledGameDto;
@@ -26,6 +27,7 @@ public class GameAnalysisTasklet {
     private final MemberRepository memberRepo;
     private final TelegramService telegramService;
     private final GameRosterClient gameRosterClient;
+    private final GameMessageFormatter gameMessageFormatter;
 
     public void execute(ScheduledGameDto schedule, RealtimeGameInfoDto info) {
         String gameId = schedule.getGameId();
@@ -56,6 +58,8 @@ public class GameAnalysisTasklet {
         JsonNode homeStandings = recordData.path("homeStandings");
         JsonNode awayStandings = recordData.path("awayStandings");
         JsonNode gameInfo = recordData.path("gameInfo");
+
+        String formattedScoreBoard = gameMessageFormatter.formatScoreboard(scoreBoard);
 
         String winner, loser;
         int awayScore = info.getAwayScore();
@@ -164,7 +168,7 @@ public class GameAnalysisTasklet {
 
         // 4) AI 호출 & 메시지 전송 (기존 로직 유지)
         log.info("[GameAnalysis] Prompt: {}", prompt);
-        String analysis;
+        String analysis = "fake analysis\n";
         try {
             analysis = chatModel.call(prompt);
         } catch (Exception e) {
@@ -192,13 +196,15 @@ public class GameAnalysisTasklet {
 
             String formatted = String.format(
                     "오늘 경기 요약이 도착했어요!\n" +
-                            "최종 스코어: %s %d : %d %s\n\n" +
+                            "⚾️ <b>%s %d : %d %s</b>\n" +
+                            "AWAY: %s, HOME: %s\n\n" +
+                            "%s\n\n" +
                             "🏆 <b>1. 승리팀(%s) 요인</b>\n%s\n\n" +
                             "💔 <b>2. 패배팀(%s) 요인</b>\n%s",
-                    Team.getDisplayNameByCode(schedule.getAwayTeamCode()),  // 원정팀 이름
-                    awayScore,                                            // 원정팀 점수
-                    homeScore,                                            // 홈팀 점수
-                    Team.getDisplayNameByCode(schedule.getHomeTeamCode()),// 홈팀 이름
+                    Team.getDisplayNameByCode(schedule.getAwayTeamCode()), awayScore, // 어웨이팀 정보
+                    homeScore, Team.getDisplayNameByCode(schedule.getHomeTeamCode()),  // 홈팀 정보
+                    Team.getDisplayNameByCode(schedule.getAwayTeamCode()), Team.getDisplayNameByCode(schedule.getHomeTeamCode()),
+                    formattedScoreBoard,
                     winner, winFactors,
                     loser, loseFactors
             );
@@ -212,4 +218,5 @@ public class GameAnalysisTasklet {
 
         log.info("##### GameAnalysis END → gameId={} #####", gameId);
     }
+
 }
