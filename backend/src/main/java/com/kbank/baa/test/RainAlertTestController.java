@@ -1,8 +1,8 @@
 package com.kbank.baa.test;
 
 import com.kbank.baa.batch.tasklet.RainAlertTasklet;
-import com.kbank.baa.sports.dto.ScheduledGameDto;
 import com.kbank.baa.sports.SportsApiClient;
+import com.kbank.baa.sports.dto.ScheduledGameDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,7 +46,6 @@ public class RainAlertTestController {
 //        return ResponseEntity.ok("✔ 수동 알림 로직 실행 완료 for game="
 //                + gameId + ", " + hoursBefore + "h, threshold=" + threshold + "mm");
 //    }
-
     @GetMapping("/today/rain-alert")
     public String testAlert() {
         List<ScheduledGameDto> scheduledGameDtos = apiClient.fetchScheduledGames(LocalDate.now(), LocalDate.now());

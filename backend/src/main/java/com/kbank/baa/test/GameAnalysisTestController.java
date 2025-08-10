@@ -1,9 +1,9 @@
 package com.kbank.baa.test;
 
 import com.kbank.baa.batch.tasklet.GameAnalysisTasklet;
+import com.kbank.baa.sports.SportsApiClient;
 import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
 import com.kbank.baa.sports.dto.ScheduledGameDto;
-import com.kbank.baa.sports.SportsApiClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;

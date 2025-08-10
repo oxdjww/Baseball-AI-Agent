@@ -17,7 +17,7 @@ public enum Team {
     SS("삼성", 224);   // 대구
 
     private final String displayName;
-    private final int    stn;  // 기상청 지점번호
+    private final int stn;  // 기상청 지점번호
 
     Team(String displayName, int stn) {
         this.displayName = displayName;

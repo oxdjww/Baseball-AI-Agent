@@ -60,7 +60,7 @@ public class TelegramService {
             log.info("→ [TelegramService] 팀 {} 팬이 없어 메시지 스킵", team);
             return;
         }
-        
+
         for (Member member : supporters) {
             sendMessage(
                     member.getTelegramId(),
