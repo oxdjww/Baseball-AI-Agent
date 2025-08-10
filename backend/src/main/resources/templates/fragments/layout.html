@@ -14,12 +14,22 @@
             <img th:src="@{/img/baa.png}" alt="BAA"/>
             <span class="fw-bold" style="color:#0114A7">Baseball Ai Agent</span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+
+        <!-- ✅ 햄버거 버튼: 관리자일 때만 보이게 -->
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#nav"
+                aria-controls="nav"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+                th:if="${adminNav}">
             <span class="navbar-toggler-icon"></span>
         </button>
+
+        <!-- 접히는 영역은 그대로 두되, 항목은 adminNav 조건 유지 -->
         <div id="nav" class="collapse navbar-collapse">
             <ul class="navbar-nav ms-auto">
-                <!-- ✅ 관리자 네비는 adminNav=true일 때만 노출 -->
                 <li class="nav-item" th:if="${adminNav}">
                     <a class="nav-link" th:href="@{/admin/members}">회원 관리</a>
                 </li>
