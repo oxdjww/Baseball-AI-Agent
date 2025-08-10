@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/admin/members")
 @RequiredArgsConstructor
-public class MemberController {
+public class AdminMemberController {
 
     private final MemberRepository memberRepository;
 

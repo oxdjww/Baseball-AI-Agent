@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <title>홈 · Baseball Ai Agent</title>
+    <th:block th:replace="~{fragments/layout :: head}"></th:block>
+</head>
+<body th:replace="~{fragments/layout :: layout(~{::section}, false)}">
+<section>
+    <div class="card card-brand">
+        <div class="card-body p-4">
+
+            <!-- 탭 헤더: 서버 사이드로 active 처리 -->
+            <ul class="nav nav-pills mb-3" id="homeTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            id="signup-tab"
+                            data-bs-toggle="pill"
+                            data-bs-target="#signup-pane"
+                            type="button" role="tab"
+                            th:classappend="${activeTab}=='login' ? '' : ' active'"
+                            th:attr="aria-selected=${activeTab}=='login' ? 'false' : 'true'">
+                        회원가입
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            id="login-tab"
+                            data-bs-toggle="pill"
+                            data-bs-target="#login-pane"
+                            type="button" role="tab"
+                            th:classappend="${activeTab}=='login' ? ' active' : ''"
+                            th:attr="aria-selected=${activeTab}=='login' ? 'true' : 'false'">
+                        로그인
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <!-- 회원가입 -->
+                <div class="tab-pane fade"
+                     id="signup-pane"
+                     role="tabpanel" aria-labelledby="signup-tab"
+                     th:classappend="${activeTab}=='login' ? '' : ' show active'">
+                    <form th:action="@{/home/signup}" method="post" th:object="${signup}">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">이름</label>
+                                <input type="text" th:field="*{name}" class="form-control" placeholder="홍길동" required/>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label d-block">응원 팀</label>
+                                <div class="d-flex flex-wrap gap-2 mt-1">
+                                    <th:block th:each="team : ${teams}">
+                                        <input type="radio" class="btn-check" th:id="${'s-team-' + team.name()}"
+                                               th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off" required/>
+                                        <label class="team-chip" th:for="${'s-team-' + team.name()}"
+                                               th:text="${team.displayName}"></label>
+                                    </th:block>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">텔레그램ID</label>
+                                <div class="input-group">
+                                    <input type="text" th:field="*{telegramId}" class="form-control" placeholder="@nickname 또는 숫자 ID" required/>
+                                    <a class="btn btn-outline-secondary" href="https://t.me/user_info_bot" target="_blank" rel="noopener">@userinfobot</a>
+                                </div>
+                                <div class="form-text">userinfobot로 이동 후 <code>/start</code>를 보내면 ID를 알려줍니다.</div>
+                            </div>
+
+                            <!-- 알림 수신 여부 -->
+                            <div class="col-12">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" th:field="*{notifyGameAnalysis}" id="s-opt1"/>
+                                            <label class="form-check-label" for="s-opt1">경기 분석 알림</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" th:field="*{notifyRainAlert}" id="s-opt2"/>
+                                            <label class="form-check-label" for="s-opt2">우천 알림</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" th:field="*{notifyRealTimeAlert}" id="s-opt3"/>
+                                            <label class="form-check-label" for="s-opt3">실시간 역전 알림</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">가입하기</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 로그인 -->
+                <div class="tab-pane fade"
+                     id="login-pane"
+                     role="tabpanel" aria-labelledby="login-tab"
+                     th:classappend="${activeTab}=='login' ? ' show active' : ''">
+                    <!-- 실패 시 폼 상단 경고 -->
+                    <div class="alert alert-danger mb-3" th:if="${loginError}" th:text="${loginError}"></div>
+
+                    <form th:action="@{/home/login}" method="post" th:object="${login}">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">이름</label>
+                                <input type="text" th:field="*{name}" class="form-control" placeholder="홍길동" required/>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label d-block">응원 팀</label>
+                                <div class="d-flex flex-wrap gap-2 mt-1">
+                                    <th:block th:each="team : ${teams}">
+                                        <input type="radio" class="btn-check" th:id="${'l-team-' + team.name()}"
+                                               th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off" required/>
+                                        <label class="team-chip" th:for="${'l-team-' + team.name()}"
+                                               th:text="${team.displayName}"></label>
+                                    </th:block>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">텔레그램ID</label>
+                                <div class="input-group">
+                                    <input type="text" th:field="*{telegramId}" class="form-control" placeholder="@nickname 또는 숫자 ID" required/>
+                                    <a class="btn btn-outline-secondary" href="https://t.me/user_info_bot" target="_blank" rel="noopener">@userinfobot</a>
+                                </div>
+                                <div class="form-text">userinfobot로 이동 후 <code>/start</code>를 보내면 ID를 알려줍니다.</div>
+                            </div>
+
+                            <div class="col-12 d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">로그인</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 🔔 로그인 실패 토스트 (팝업) -->
+            <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100;" th:if="${loginError}">
+                <div id="loginErrorToast" class="toast text-bg-danger" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">로그인 실패</strong>
+                        <small>지금</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body" th:text="${loginError}">일치하는 회원을 찾을 수 없습니다.</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- 토스트만 표시 (탭 전환 JS 없음) -->
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function(){
+        var hasError = /*[[${loginError} != null]]*/ false;
+        if(hasError){
+            var toastEl = document.getElementById('loginErrorToast');
+            if(toastEl){
+                var toast = new bootstrap.Toast(toastEl, { delay: 3500 });
+                toast.show();
+            }
+        }
+    });
+</script>
+</body>
+</html>

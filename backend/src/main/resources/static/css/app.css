@@ -1,0 +1,40 @@
+:root{
+    --primary:#4262FF;
+    --indigo:#0114A7;
+    --black:#000000;
+    --white:#FFFFFF;
+    --bg:#f6f8ff;
+}
+html,body{height:100%;}
+body{background: var(--bg);}
+.navbar-brand img{height:32px;width:auto;}
+.btn-primary{background: var(--primary);border-color: var(--primary);}
+.btn-primary:hover{filter:brightness(0.95);}
+.btn-outline-primary{color:var(--indigo);border-color:var(--indigo);}
+.btn-outline-primary:hover{background:var(--indigo);color:#fff;}
+.badge-brand{background:var(--indigo);}
+.card-brand{border:0; box-shadow: 0 8px 24px rgba(1,20,167,0.08); border-radius: 1rem;}
+.hero{
+    background: radial-gradient(1200px 600px at 10% -10%, rgba(66,98,255,0.18), transparent),
+    radial-gradient(1000px 500px at 110% -20%, rgba(1,20,167,0.2), transparent);
+    border-bottom: 1px solid rgba(1,20,167,0.08);
+}
+.form-check-input:checked{background-color:var(--primary);border-color:var(--primary);}
+.team-chip{
+    --chip-b:#e8ecff;
+    display:inline-flex;align-items:center;gap:.5rem;
+    background:var(--chip-b);border:1px solid rgba(1,20,167,.18);
+    padding:.5rem .75rem;border-radius:999px;font-weight:600;
+    cursor:pointer;user-select:none;
+}
+.team-chip input{display:none;}
+.team-chip.active{background:var(--indigo);color:#fff;border-color:var(--indigo);}
+.table thead th{background:#f2f4ff;color:#222;border-bottom:1px solid rgba(0,0,0,.05);}
+.table td, .table th{vertical-align:middle;}
+.help-text{color:#4b5563;font-size:.95rem;}
+.footer-note{color:#6b7280;font-size:.875rem;}
+@media (max-width: 576px){
+    .display-6{font-size:1.5rem;}
+    .hero .btn{width:100%;}
+    .table-responsive{border-radius:.75rem;}
+}

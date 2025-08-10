@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:fragment="head">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link th:href="@{/css/app.css}" rel="stylesheet"/>
+</head>
+
+<body th:fragment="layout(content, adminNav)">
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" th:href="@{/home}">
+            <img th:src="@{/img/baa.png}" alt="BAA"/>
+            <span class="fw-bold" style="color:#0114A7">Baseball Ai Agent</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="nav" class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <!-- ✅ 관리자 네비는 adminNav=true일 때만 노출 -->
+                <li class="nav-item" th:if="${adminNav}">
+                    <a class="nav-link" th:href="@{/admin/members}">회원 관리</a>
+                </li>
+                <li class="nav-item" th:if="${adminNav}">
+                    <a class="nav-link" th:href="@{/admin/members/new}">회원 가입</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<header class="hero py-4">
+    <div class="container d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+            <span class="badge badge-brand">v1</span>
+            <h1 class="display-6 mt-2 mb-1 fw-bold" style="color:#0114A7">Baseball Ai Agent</h1>
+            <p class="mb-0 help-text">실시간 역전 알림 · 우천 취소 알림 · AI 경기 분석.</p>
+        </div>
+        <!-- ❌ 사용자 헤더에는 텔레그램 버튼 없음 -->
+    </div>
+</header>
+
+<main class="py-4">
+    <div class="container">
+        <section th:insert="${content}"></section>
+    </div>
+</main>
+
+<footer class="py-4 border-top bg-white">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center">
+        <span class="footer-note">© <span th:text="${#temporals.format(#temporals.createNow(),'yyyy')}"></span> Baseball Ai Agent</span>
+        <!-- ❌ 사용자 푸터에도 텔레그램 버튼 없음 -->
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('change', function(e){
+        if(e.target && e.target.matches('input[name="supportTeam"]')){
+            const chips = document.querySelectorAll('.team-chip');
+            chips.forEach(c => c.classList.remove('active'));
+            const label = document.querySelector('label[for="' + e.target.id + '"]');
+            if(label) label.classList.add('active');
+        }
+    });
+    document.addEventListener('DOMContentLoaded', function(){
+        document.querySelectorAll('input[name="supportTeam"]').forEach(r => {
+            if(r.checked){
+                const label = document.querySelector('label[for="' + r.id + '"]');
+                if(label) label.classList.add('active');
+            }
+        });
+    });
+</script>
+</body>
+</html>

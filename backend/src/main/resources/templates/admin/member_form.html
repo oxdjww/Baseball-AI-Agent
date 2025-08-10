@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <title th:text="${member.id == null ? '회원 등록' : '회원 수정'} + ' · Baseball Ai Agent'"></title>
+    <th:block th:replace="~{fragments/layout :: head}"></th:block>
+</head>
+<body th:replace="~{fragments/layout :: layout(~{::section}, false)}">
+<section>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 fw-bold mb-0" style="color:var(--indigo)"
+            th:text="${member.id == null ? '회원 등록' : '회원 수정'}"></h2>
+        <a th:href="@{/admin/members}" class="btn btn-outline-primary">목록</a>
+    </div>
+
+    <div class="card card-brand">
+        <div class="card-body">
+            <form th:action="${formAction}"
+                  method="post" th:object="${member}" class="row g-3">
+
+                <!-- 이름 -->
+                <div class="col-12 col-md-6">
+                    <label class="form-label">이름</label>
+                    <input type="text" th:field="*{name}" class="form-control" placeholder="홍길동" required/>
+                </div>
+
+                <!-- 응원 팀 -->
+                <div class="col-12">
+                    <label class="form-label d-block">응원 팀</label>
+                    <div class="d-flex flex-wrap gap-2 mt-1">
+                        <th:block th:each="team : ${teams}">
+                            <input type="radio" class="btn-check" th:id="${'team-' + team.name()}"
+                                   th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off"/>
+                            <label class="team-chip" th:for="${'team-' + team.name()}"
+                                   th:text="${team.displayName}"></label>
+                        </th:block>
+                    </div>
+                </div>
+
+                <!-- 텔레그램 ID -->
+                <div class="col-12 col-md-6">
+                    <label class="form-label">텔레그램ID</label>
+                    <input type="text" th:field="*{telegramId}" class="form-control"
+                           placeholder="예: 123456789 또는 @nickname"/>
+                    <div class="form-text">봇 연결이 필요합니다. 하단 버튼으로 이동하세요.</div>
+                </div>
+
+                <!-- 알림 설정 -->
+                <div class="col-12">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" th:field="*{notifyGameAnalysis}"
+                                       id="opt1"/>
+                                <label class="form-check-label" for="opt1">경기 분석 알림 받기</label>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" th:field="*{notifyRainAlert}"
+                                       id="opt2"/>
+                                <label class="form-check-label" for="opt2">우천 알림 받기</label>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" th:field="*{notifyRealTimeAlert}"
+                                       id="opt3"/>
+                                <label class="form-check-label" for="opt3">실시간 역전 알림 받기</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 버튼 -->
+                <div class="col-12 d-flex flex-wrap gap-2 mt-2">
+                    <button type="submit" class="btn btn-primary">저장</button>
+                    <a th:href="@{/admin/members}" class="btn btn-outline-primary">취소</a>
+                    <a class="btn btn-outline-primary ms-auto"
+                       href="http://t.me/@baseball_ai_agent_bot" target="_blank" rel="noopener">텔레그램 봇 연결</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+</th:block>
+</body>
+</html>

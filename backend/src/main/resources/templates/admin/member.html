@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <title>회원 목록 · Baseball Ai Agent</title>
+    <th:block th:replace="~{fragments/layout :: head}"></th:block>
+</head>
+<body th:replace="~{fragments/layout :: layout(~{::section}, false)}">
+<section>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 fw-bold mb-0" style="color:var(--indigo)">회원 목록</h2>
+        <a th:href="@{/admin/members/new}" class="btn btn-primary">회원 추가</a>
+    </div>
+
+    <div class="card card-brand">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>이름</th>
+                        <th>응원팀</th>
+                        <th>텔레그램ID</th>
+                        <th class="text-center">AI분석</th>
+                        <th class="text-center">우천</th>
+                        <th class="text-center">실시간</th>
+                        <th>관리</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="m : ${members}">
+                        <td th:text="${m.id}"></td>
+                        <td th:text="${m.name}"></td>
+                        <td><span class="badge text-bg-light border" th:text="${m.supportTeam}"></span></td>
+                        <td th:text="${m.telegramId}"></td>
+                        <td class="text-center">
+                            <span th:text="${m.notifyGameAnalysis ? 'O' : 'X'}"></span>
+                        </td>
+                        <td class="text-center">
+                            <span th:text="${m.notifyRainAlert ? 'O' : 'X'}"></span>
+                        </td>
+                        <td class="text-center">
+                            <span th:text="${m.notifyRealTimeAlert ? 'O' : 'X'}"></span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a th:href="@{'/admin/members/' + ${m.id} + '/edit'}"
+                                   class="btn btn-sm btn-outline-primary">수정</a>
+                                <form th:action="@{'/admin/members/' + ${m.id} + '/delete'}" method="post"
+                                      onsubmit="return confirm('삭제할까요?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div
+    </div>
+</section>
+</th:block>
+</body>
+</html>

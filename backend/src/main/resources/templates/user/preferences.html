@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <title>알림 설정 · Baseball Ai Agent</title>
+    <th:block th:replace="~{fragments/layout :: head}"></th:block>
+</head>
+<body th:replace="~{fragments/layout :: layout(~{::section}, false)}">
+<section>
+    <div class="card card-brand">
+        <div class="card-body p-4">
+            <h2 class="h5 fw-bold mb-3" style="color:#0114A7">알림 설정</h2>
+
+            <p class="help-text mb-4">
+                <strong th:text="${pref.name}">사용자</strong>
+                (<span th:text="${pref.telegramId}">@tg</span>)
+            </p>
+
+            <form th:action="@{/user/preferences}" method="post" th:object="${pref}">
+                <input type="hidden" th:field="*{id}"/>
+                <input type="hidden" th:field="*{name}"/>
+                <input type="hidden" th:field="*{telegramId}"/>
+
+                <!-- ✅ 응원팀 수정 가능 -->
+                <div class="mb-3">
+                    <label class="form-label d-block">응원 팀</label>
+                    <div class="d-flex flex-wrap gap-2 mt-1">
+                        <th:block th:each="team : ${teams}">
+                            <input type="radio" class="btn-check"
+                                   th:id="${'p-team-' + team.name()}"
+                                   th:field="*{supportTeam}"
+                                   th:value="${team.name()}" autocomplete="off"/>
+                            <label class="team-chip" th:for="${'p-team-' + team.name()}"
+                                   th:text="${team.displayName}"></label>
+                        </th:block>
+                    </div>
+                </div>
+
+                <!-- 알림 토글 -->
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" th:field="*{notifyGameAnalysis}" id="p1"/>
+                            <label class="form-check-label" for="p1">경기 분석 알림</label>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" th:field="*{notifyRainAlert}" id="p2"/>
+                            <label class="form-check-label" for="p2">우천 알림</label>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" th:field="*{notifyRealTimeAlert}" id="p3"/>
+                            <label class="form-check-label" for="p3">실시간 역전 알림</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">저장</button>
+                    <a class="btn btn-outline-primary" th:href="@{/home}">홈으로</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+</body>
+</html>
