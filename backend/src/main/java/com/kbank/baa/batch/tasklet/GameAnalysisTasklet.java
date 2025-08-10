@@ -5,8 +5,8 @@ import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.MemberRepository;
 import com.kbank.baa.admin.Team;
 import com.kbank.baa.sports.GameRosterClient;
-import com.kbank.baa.sports.RealtimeGameInfo;
-import com.kbank.baa.sports.ScheduledGame;
+import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
+import com.kbank.baa.sports.dto.ScheduledGameDto;
 import com.kbank.baa.telegram.TelegramService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ public class GameAnalysisTasklet {
     private final TelegramService telegramService;
     private final GameRosterClient gameRosterClient;
 
-    public void execute(ScheduledGame schedule, RealtimeGameInfo info) {
+    public void execute(ScheduledGameDto schedule, RealtimeGameInfoDto info) {
         String gameId = schedule.getGameId();
         String dateLabel = schedule.getGameDateTime()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -58,7 +58,6 @@ public class GameAnalysisTasklet {
         JsonNode gameInfo = recordData.path("gameInfo");
 
         String winner, loser;
-        int winnerScore, loserScore;
         int awayScore = info.getAwayScore();
         int homeScore = info.getHomeScore();
 
@@ -66,18 +65,12 @@ public class GameAnalysisTasklet {
         if (awayScore > homeScore) {
             winner = info.getAwayTeamName();
             loser = info.getHomeTeamName();
-            winnerScore = awayScore;
-            loserScore = homeScore;
         } else if (homeScore > awayScore) {
             winner = info.getHomeTeamName();
             loser = info.getAwayTeamName();
-            winnerScore = homeScore;
-            loserScore = awayScore;
         } else {
             winner = "무승부";
             loser = "무승부";
-            winnerScore = homeScore;
-            loserScore = awayScore;
         }
 
         List<String> awayTeamPlayers = gameRosterClient.fetchPlayerNamesByTeam(gameId, schedule.getAwayTeamName());

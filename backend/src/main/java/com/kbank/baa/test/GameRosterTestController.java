@@ -1,8 +1,8 @@
 package com.kbank.baa.test;
 
 import com.kbank.baa.sports.GameRosterClient;
-import com.kbank.baa.sports.dto.GamePlayersResponse.Player;
-import com.kbank.baa.sports.dto.GameRoster;
+import com.kbank.baa.sports.dto.GamePlayersResponseDto.Player;
+import com.kbank.baa.sports.dto.GameRosterResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,7 +39,7 @@ public class GameRosterTestController {
      * 홈/어웨이 묶음 로스터 테스트
      */
     @GetMapping("/rosterDetail")
-    public GameRoster getGameRosterDetail(@RequestParam String gameId) {
+    public GameRosterResponseDto getGameRosterDetail(@RequestParam String gameId) {
         return gameRosterClient.fetchGameRosterDetail(gameId);
     }
 }

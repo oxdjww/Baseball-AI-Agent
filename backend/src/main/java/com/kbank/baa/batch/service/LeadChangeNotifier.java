@@ -3,9 +3,8 @@ package com.kbank.baa.batch.service;
 
 import com.kbank.baa.admin.Member;
 import com.kbank.baa.sports.GameMessageFormatter;
-import com.kbank.baa.sports.RealtimeGameInfo;
-import com.kbank.baa.sports.ScheduledGame;
-import com.kbank.baa.telegram.TelegramProperties;
+import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
+import com.kbank.baa.sports.dto.ScheduledGameDto;
 import com.kbank.baa.telegram.TelegramService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +20,10 @@ import java.util.concurrent.atomic.AtomicReference;
 @RequiredArgsConstructor
 public class LeadChangeNotifier {
     private final GameMessageFormatter formatter;
-    private final TelegramProperties telegramProperties;
     private final TelegramService telegram;
     private final Map<String, String> leaderMap = new ConcurrentHashMap<>();
 
-    public void notify(ScheduledGame schedule, List<Member> members, RealtimeGameInfo info) {
+    public void notify(ScheduledGameDto schedule, List<Member> members, RealtimeGameInfoDto info) {
         String gameId = schedule.getGameId();
         String currLeader = SupportUtils.calculateLeader(info);
 

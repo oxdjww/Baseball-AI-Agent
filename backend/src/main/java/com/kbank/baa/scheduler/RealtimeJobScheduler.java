@@ -13,11 +13,10 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class BatchScheduler {
+public class RealtimeJobScheduler {
 
     private final JobLauncher jobLauncher;
     private final Job realTimeAlertJob;
-    // TODO: AI 분석 Job 추가 필요
 
 //    @Scheduled(fixedDelay = 300_000) // 5분, 테스트용
 

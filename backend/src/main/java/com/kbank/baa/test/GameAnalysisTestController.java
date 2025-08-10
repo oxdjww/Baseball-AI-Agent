@@ -1,8 +1,8 @@
 package com.kbank.baa.test;
 
 import com.kbank.baa.batch.tasklet.GameAnalysisTasklet;
-import com.kbank.baa.sports.RealtimeGameInfo;
-import com.kbank.baa.sports.ScheduledGame;
+import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
+import com.kbank.baa.sports.dto.ScheduledGameDto;
 import com.kbank.baa.sports.SportsApiClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +32,7 @@ public class GameAnalysisTestController {
         );
 
         // 2) 해당 일자 스케줄에서 gameId 로 검색
-        ScheduledGame schedule = sportsApiClient
+        ScheduledGameDto schedule = sportsApiClient
                 .fetchScheduledGames(gameDate, gameDate)
                 .stream()
                 .filter(g -> g.getGameId().equals(gameId))
@@ -42,7 +42,7 @@ public class GameAnalysisTestController {
                 ));
 
         // 3) 실시간 정보 조회
-        RealtimeGameInfo info = sportsApiClient.fetchGameInfo(gameId);
+        RealtimeGameInfoDto info = sportsApiClient.fetchGameInfo(gameId);
 
         // 4) Tasklet 실행
         gameAnalysisTasklet.execute(schedule, info);

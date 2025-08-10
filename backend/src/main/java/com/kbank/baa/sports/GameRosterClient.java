@@ -1,8 +1,8 @@
 package com.kbank.baa.sports;
 
-import com.kbank.baa.sports.dto.GamePlayersResponse;
-import com.kbank.baa.sports.dto.GamePlayersResponse.Player;
-import com.kbank.baa.sports.dto.GameRoster;
+import com.kbank.baa.sports.dto.GamePlayersResponseDto;
+import com.kbank.baa.sports.dto.GamePlayersResponseDto.Player;
+import com.kbank.baa.sports.dto.GameRosterResponseDto;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -27,8 +27,8 @@ public class GameRosterClient {
      * 전체 홈·어웨이 로스터 반환
      */
     public List<Player> fetchGameRoster(String gameId) {
-        GamePlayersResponse resp = callApi(gameId);
-        GamePlayersResponse.Result result = resp.getResult();
+        GamePlayersResponseDto resp = callApi(gameId);
+        GamePlayersResponseDto.Result result = resp.getResult();
 
         List<Player> roster = new ArrayList<>();
         if (result.getHomeCandidates() != null) roster.addAll(result.getHomeCandidates());
@@ -40,7 +40,7 @@ public class GameRosterClient {
      * 특정 팀(homeTeamName 또는 awayTeamName)에 소속된 선수만 반환
      */
     public List<Player> fetchPlayersByTeam(String gameId, String teamName) {
-        GamePlayersResponse.Result result = callApi(gameId).getResult();
+        GamePlayersResponseDto.Result result = callApi(gameId).getResult();
         return result.getPlayersByTeam(teamName);
     }
 
@@ -56,9 +56,9 @@ public class GameRosterClient {
     /**
      * 홈/어웨이 묶음 DTO 반환
      */
-    public GameRoster fetchGameRosterDetail(String gameId) {
-        GamePlayersResponse.Result result = callApi(gameId).getResult();
-        GameRoster roster = new GameRoster();
+    public GameRosterResponseDto fetchGameRosterDetail(String gameId) {
+        GamePlayersResponseDto.Result result = callApi(gameId).getResult();
+        GameRosterResponseDto roster = new GameRosterResponseDto();
         roster.setHomePlayers(result.getHomeCandidates());
         roster.setAwayPlayers(result.getAwayCandidates());
         return roster;
@@ -67,9 +67,9 @@ public class GameRosterClient {
     /**
      * 공통 API 호출 로직
      */
-    private GamePlayersResponse callApi(String gameId) {
-        GamePlayersResponse resp = restTemplate
-                .getForObject(URL_TEMPLATE, GamePlayersResponse.class, gameId);
+    private GamePlayersResponseDto callApi(String gameId) {
+        GamePlayersResponseDto resp = restTemplate
+                .getForObject(URL_TEMPLATE, GamePlayersResponseDto.class, gameId);
         if (resp == null || !resp.isSuccess()) {
             throw new IllegalStateException("API 호출 실패: gameId=" + gameId);
         }

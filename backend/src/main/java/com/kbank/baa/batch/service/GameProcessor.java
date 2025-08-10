@@ -3,9 +3,9 @@ package com.kbank.baa.batch.service;
 import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.Team;
 import com.kbank.baa.batch.tasklet.GameAnalysisTasklet;
-import com.kbank.baa.sports.RealtimeGameInfo;
-import com.kbank.baa.sports.ScheduledGame;
 import com.kbank.baa.sports.SportsApiClient;
+import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
+import com.kbank.baa.sports.dto.ScheduledGameDto;
 import com.kbank.baa.telegram.TelegramService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,18 +25,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GameProcessor {
     private final SportsApiClient apiClient;
-    private final GameStatusLogger statusLogger;
     private final LeadChangeNotifier leadNotifier;
     private final Set<String> gameEndChecker = new HashSet<>();
     private final TaskScheduler taskScheduler;
     private final GameAnalysisTasklet gameAnalysisTasklet;
     private final TelegramService telegramService;
 
-    public void process(ScheduledGame schedule, List<Member> members) {
+    public void process(ScheduledGameDto schedule, List<Member> members) {
         var gameId = schedule.getGameId();
         log.info("########## processGame 시작 → gameId={} ##########", gameId);
 
-        // 🔹 여기서 필터링: 홈/어웨이 팀을 응원하는 멤버만 members에 재할당
+        // 게임에 해당되는 (홈/어웨이) 팀을 응원하는 멤버만 재초기화
         members = members.stream()
                 .filter(m ->
                         m.getSupportTeam().name().equals(schedule.getHomeTeamCode()) ||
@@ -44,7 +43,7 @@ public class GameProcessor {
                 )
                 .collect(Collectors.toList());
 
-        RealtimeGameInfo info;
+        RealtimeGameInfoDto info;
         try {
             info = apiClient.fetchGameInfo(gameId);
         } catch (Exception e) {
@@ -53,7 +52,11 @@ public class GameProcessor {
         }
 
         if (!"STARTED".equals(info.getStatusCode())) {
-            statusLogger.log(schedule, info);
+            log.info("########## STATUS={} [{}] {} vs {} ##########",
+                    info.getStatusCode(),
+                    info.getGameId(),
+                    info.getAwayTeamCode(),
+                    info.getHomeTeamCode());
             if (("ENDED".equals(info.getStatusCode()) || "RESULT".equals(info.getStatusCode())) && !gameEndChecker.contains(info.getGameId())) {
                 gameEndChecker.add(info.getGameId());
                 LocalDateTime analysisTime = LocalDateTime.now().plusHours(1);

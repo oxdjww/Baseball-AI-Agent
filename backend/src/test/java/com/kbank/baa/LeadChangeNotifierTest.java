@@ -4,14 +4,14 @@ import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.Team;
 import com.kbank.baa.batch.service.LeadChangeNotifier;
 import com.kbank.baa.sports.GameMessageFormatter;
-import com.kbank.baa.sports.RealtimeGameInfo;
-import com.kbank.baa.sports.ScheduledGame;
-import com.kbank.baa.telegram.TelegramProperties;
+import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
+import com.kbank.baa.sports.dto.ScheduledGameDto;
 import com.kbank.baa.telegram.TelegramService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -25,19 +25,17 @@ public class LeadChangeNotifierTest {
     @Mock
     GameMessageFormatter formatter;
     @Mock
-    TelegramProperties props;            // 필요 시
-    @Mock
     TelegramService telegram;
     @InjectMocks
     LeadChangeNotifier notifier;
 
-    ScheduledGame schedule;
+    ScheduledGameDto schedule;
     Member homeFan, awayFan;
 
     @BeforeEach
     void setUp() {
         // 1) 테스트용 ScheduledGame 세팅
-        schedule = ScheduledGame.builder()
+        schedule = ScheduledGameDto.builder()
                 .gameId("GAME123")
                 .homeTeamCode("LG")
                 .awayTeamCode("LT")
@@ -68,7 +66,7 @@ public class LeadChangeNotifierTest {
     @Test
     void notify_whenLeaderChanges_sendsToAllSupporters() {
         // — “역전” 상태로 간주하기 위해 homeScore > awayScore 로 리더 결정
-        RealtimeGameInfo info = RealtimeGameInfo.builder()
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
                 .statusCode("STARTED")
                 .homeTeamCode("LG")
                 .awayTeamCode("LT")

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class GamePlayersResponse {
+public class GamePlayersResponseDto {
     private int code;
     private boolean success;
     private Result result;

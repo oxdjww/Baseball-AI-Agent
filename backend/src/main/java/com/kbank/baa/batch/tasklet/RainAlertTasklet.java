@@ -4,8 +4,8 @@ package com.kbank.baa.batch.tasklet;
 import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.MemberRepository;
 import com.kbank.baa.admin.Team;
-import com.kbank.baa.sports.ScheduledGame;
 import com.kbank.baa.sports.SportsApiClient;
+import com.kbank.baa.sports.dto.ScheduledGameDto;
 import com.kbank.baa.telegram.TelegramService;
 import com.kbank.baa.weather.service.RainfallService;
 import lombok.NonNull;
@@ -40,7 +40,7 @@ public class RainAlertTasklet implements Tasklet {
      * @param hoursBefore 경기 시작 몇 시간 전인지 (1 또는 3)
      * @param thresholdMm 시간당 강수량 기준(mm)
      */
-    public void executeForGame(ScheduledGame game,
+    public void executeForGame(ScheduledGameDto game,
                                LocalDateTime alertTime,
                                int hoursBefore,
                                double thresholdMm) {
@@ -63,7 +63,23 @@ public class RainAlertTasklet implements Tasklet {
         // 4) 메시지 텍스트 생성
         String vs = String.format("[%s vs %s]", awayTeam.getDisplayName(), homeTeam.getDisplayName());
         String text;
-        if (rain >= thresholdMm) {
+
+        // 고척(실내)경기장 이거나, 기준치 미달일 경우
+        if (game.getStadium().equals("고척")) {
+            log.info("고척 경기장(실내) 관전 권장 메시지 생성");
+            text = String.format(
+                    " %s 오늘은 고척 실내 경기장!\n비 걱정 없어요! 즐겁게 관전하세요! ⚾",
+                    vs
+            );
+        } else if (rain < thresholdMm) {
+            // 강수량이 우천 취소 기준치 미달
+            log.info("rain < thresholdMm ({} < {}), 관전 권장 메시지 생성", rain, thresholdMm);
+            text = String.format(
+                    " %s %d시간 전 강수량 %.1fmm\n비 걱정 없어요! 즐겁게 관전하세요! ⚾",
+                    vs, hoursBefore, rain
+            );
+        } else {
+            // 강수량이 우천 취소 기준치에 해당될 경우
             if (sportsApiClient.fetchCancelInfoFromGameInfo(game.getGameId())) {
                 // 강수량도 기준치 이상이고, 실제로 게임도 취소된 경우
                 log.info("rain >= thresholdMm ({} ≥ {}), 우천취소 확정 메시지 생성", rain, thresholdMm);
@@ -79,12 +95,6 @@ public class RainAlertTasklet implements Tasklet {
                         vs, hoursBefore, rain
                 );
             }
-        } else {
-            log.info("rain < thresholdMm ({} < {}), 관전 권장 메시지 생성", rain, thresholdMm);
-            text = String.format(
-                    " %s %d시간 전 강수량 %.1fmm\n비 걱정 없어요! 즐겁게 관전하세요! ⚾",
-                    vs, hoursBefore, rain
-            );
         }
         log.debug("##### Generated text: {}", text);
 

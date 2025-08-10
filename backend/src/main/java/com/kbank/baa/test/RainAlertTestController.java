@@ -1,20 +1,16 @@
 package com.kbank.baa.test;
 
 import com.kbank.baa.batch.tasklet.RainAlertTasklet;
-import com.kbank.baa.sports.ScheduledGame;
+import com.kbank.baa.sports.dto.ScheduledGameDto;
 import com.kbank.baa.sports.SportsApiClient;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -53,8 +49,8 @@ public class RainAlertTestController {
 
     @GetMapping("/today/rain-alert")
     public String testAlert() {
-        List<ScheduledGame> scheduledGames = apiClient.fetchScheduledGames(LocalDate.now(), LocalDate.now());
-        for (ScheduledGame game : scheduledGames) {
+        List<ScheduledGameDto> scheduledGameDtos = apiClient.fetchScheduledGames(LocalDate.now(), LocalDate.now());
+        for (ScheduledGameDto game : scheduledGameDtos) {
             // ① 알림 시점 계산
             LocalDateTime alertTime = game.getGameDateTime().minusHours(1);
             // ② 반드시 4-arg 메서드 호출!

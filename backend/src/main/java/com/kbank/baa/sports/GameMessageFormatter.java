@@ -2,12 +2,13 @@ package com.kbank.baa.sports;
 
 import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.Team;
+import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
 import org.springframework.stereotype.Component;
 
 @Component
 public class GameMessageFormatter {
 
-    public String format(Member member, RealtimeGameInfo g) {
+    public String format(Member member, RealtimeGameInfoDto g) {
         return String.format(
                 "%s님의 응원팀 %s의 경기 현황을 알려드려요.%n" +
                         "[%s vs %s] %s %s 경기 %n" +
@@ -25,7 +26,7 @@ public class GameMessageFormatter {
     }
 
     public String formatLeadChange(Member m,
-                                   RealtimeGameInfo info,
+                                   RealtimeGameInfoDto info,
                                    String prevLeader,
                                    String currLeader) {
         int awayTeamScore = info.getAwayScore();

@@ -1,6 +1,8 @@
 package com.kbank.baa.sports;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
+import com.kbank.baa.sports.dto.ScheduledGameDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +26,11 @@ import java.util.Optional;
 public class SportsApiClient {
     private final RestTemplate restTemplate;
 
+    // 당일의 진행 경기 정보를 가져오는 함수
     @Retryable(retryFor = RestClientException.class,
             maxAttempts = 5,
             backoff = @Backoff(delay = 2000))
-    public List<ScheduledGame> fetchScheduledGames(LocalDate from, LocalDate to) {
+    public List<ScheduledGameDto> fetchScheduledGames(LocalDate from, LocalDate to) {
         String url = UriComponentsBuilder
                 .fromUriString("https://api-gw.sports.naver.com/schedule/games")
                 .queryParam("fields", "basic,schedule,baseball")
@@ -45,9 +48,9 @@ public class SportsApiClient {
         JsonNode gamesNode = root.path("result").path("games");
 
 
-        List<ScheduledGame> list = new ArrayList<>();
+        List<ScheduledGameDto> list = new ArrayList<>();
         for (JsonNode g : gamesNode) {
-            list.add(ScheduledGame.builder()
+            list.add(ScheduledGameDto.builder()
                     .gameId(g.path("gameId").asText())
                     .homeTeamCode(g.path("homeTeamCode").asText())
                     .awayTeamCode(g.path("awayTeamCode").asText())
@@ -61,7 +64,8 @@ public class SportsApiClient {
     }
 
 
-    public RealtimeGameInfo fetchGameInfo(String gameId) {
+    // 게임ID를 기반으로 경기 정보 단건 조회
+    public RealtimeGameInfoDto fetchGameInfo(String gameId) {
         String url = "https://api-gw.sports.naver.com/schedule/games/" + gameId;
         ResponseEntity<JsonNode> resp = restTemplate.getForEntity(url, JsonNode.class);
         JsonNode root = Optional.ofNullable(resp.getBody())
@@ -69,7 +73,7 @@ public class SportsApiClient {
         JsonNode g = root.path("result").path("game");
 
 
-        return RealtimeGameInfo.builder()
+        return RealtimeGameInfoDto.builder()
                 .gameId(g.path("gameId").asText())
                 .gameDateTime(LocalDateTime.parse(g.path("gameDateTime").asText()))
                 .statusCode(g.path("statusCode").asText())
@@ -85,22 +89,20 @@ public class SportsApiClient {
                 .build();
     }
 
+    // 게임 ID를 기반으로 경기의 취소 여부만 조회
     public boolean fetchCancelInfoFromGameInfo(String gameId) {
         String url = "https://api-gw.sports.naver.com/schedule/games/" + gameId;
         ResponseEntity<JsonNode> resp = restTemplate.getForEntity(url, JsonNode.class);
         JsonNode root = Optional.ofNullable(resp.getBody())
                 .orElseThrow(() -> new RestClientException("########## API Fetch Failure: " + url));
         String cancelInfo = root.path("result").path("game").path("cancel").asText();
-        if (cancelInfo.equals("true")) {
-            return true;
-        } else {
-            return false;
-        }
+        return cancelInfo.equals("true");
     }
 
+    // 재시도시 recover하는 함수
     @SuppressWarnings("unused")
     @Recover
-    public List<ScheduledGame> recover(RestClientException ex, LocalDate from, LocalDate to) {
+    public List<ScheduledGameDto> recover(RestClientException ex, LocalDate from, LocalDate to) {
         return List.of();
     }
 }

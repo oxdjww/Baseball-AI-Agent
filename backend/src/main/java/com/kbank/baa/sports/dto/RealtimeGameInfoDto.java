@@ -1,4 +1,4 @@
-package com.kbank.baa.sports;
+package com.kbank.baa.sports.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class RealtimeGameInfo {
+public class RealtimeGameInfoDto {
     // — 스케줄·메타데이터
     private String gameId;               // ex. "20250720LTLG02025"
     private String memberName;           // ex. "홍길동"

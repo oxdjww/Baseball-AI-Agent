@@ -1,7 +1,7 @@
 package com.kbank.baa.scheduler;
 
 import com.kbank.baa.batch.tasklet.RainAlertTasklet;
-import com.kbank.baa.sports.ScheduledGame;
+import com.kbank.baa.sports.dto.ScheduledGameDto;
 import com.kbank.baa.sports.SportsApiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,14 +44,14 @@ public class RainAlertJobScheduler {
 
     private void scheduleAlertsFor(LocalDate date) {
         log.info("##### Scheduling rain alerts for date {}", date);
-        List<ScheduledGame> games = apiClient.fetchScheduledGames(date, date);
-        for (ScheduledGame game : games) {
+        List<ScheduledGameDto> games = apiClient.fetchScheduledGames(date, date);
+        for (ScheduledGameDto game : games) {
             scheduleForGame(game, 3, 10);
             scheduleForGame(game, 1, 5);
         }
     }
 
-    private void scheduleForGame(ScheduledGame game,
+    private void scheduleForGame(ScheduledGameDto game,
                                  int hoursBefore,
                                  double thresholdMm) {
         LocalDateTime alertTime = game.getGameDateTime().minusHours(hoursBefore);
