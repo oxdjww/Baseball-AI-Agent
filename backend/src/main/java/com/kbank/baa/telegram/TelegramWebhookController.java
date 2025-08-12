@@ -84,7 +84,7 @@ public class TelegramWebhookController {
         telegramService.sendMessage(
                 String.valueOf(chatId),
                 "회원",
-                "안녕하세요!\n Baseball Ai Agent입니다.\n\n매일 진행되는 야구 경기 알림을 받아보세요! ⚾️\n기능 오작동 및 오류 문의는 아래 링크로 제보해 주세요.\n\nhttps://t.me/lIllllIIllllI\n\n 감사합니다."
+                "안녕하세요!\n🧢 Baseball Ai Agent입니다.\n\n매일 진행되는 야구 경기 알림을 받아보세요! ⚾️\n기능 오작동 및 오류 문의는 아래 링크로 제보해 주세요.\n\nhttps://t.me/lIllllIIllllI\n\n 감사합니다."
         );
     }
 }
