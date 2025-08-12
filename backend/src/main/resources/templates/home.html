@@ -100,30 +100,57 @@
                      id="login-pane"
                      role="tabpanel" aria-labelledby="login-tab"
                      th:classappend="${activeTab}=='login' ? ' show active' : ''">
-                    <!-- 실패 시 폼 상단 경고 -->
-                    <div class="alert alert-danger mb-3" th:if="${loginError}" th:text="${loginError}"></div>
 
-                    <form th:action="@{/home/login}" method="post" th:object="${login}">
-                        <div class="row g-3">
-                            <div class="col-12 col-md-6">
-                                <label class="form-label">이름</label>
-                                <input type="text" th:field="*{name}" class="form-control" placeholder="홍길동" required/>
-                            </div>
+                    <!-- ✅ 로그인 성공 상태 -->
+                    <div th:if="${member != null}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
+                        <span class="badge bg-success">로그인됨</span>
+                        <span>
+                          <b th:text="${member.name}">홍길동</b> 님 ·
+                          <span th:text="${member.supportTeam}">TEAM</span>
+                        </span>
+                        <a class="btn btn-outline-secondary btn-sm ms-auto" th:href="@{/home/preferences}">
+                            응원팀/알림 설정
+                        </a>
+                        <a class="btn btn-outline-primary btn-sm ms-2" th:href="@{/signup_success}">
+                            텔레그램 봇 연결하기
+                        </a>
+                        <form th:action="@{/home/logout}" method="post" class="ms-2">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">로그아웃</button>
+                        </form>
+                    </div>
 
-                            <div class="col-12">
-                                <label class="form-label d-block">응원 팀</label>
-                                <div class="d-flex flex-wrap gap-2 mt-1">
-                                    <th:block th:each="team : ${teams}">
-                                        <input type="radio" class="btn-check" th:id="${'l-team-' + team.name()}"
-                                               th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off"
-                                               required/>
-                                        <label class="team-chip" th:for="${'l-team-' + team.name()}"
-                                               th:text="${team.displayName}"></label>
-                                    </th:block>
+                    <!-- 로그인 폼 (로그인 전) -->
+                    <div th:if="${member == null}">
+                        <!-- 실패 시 폼 상단 경고 -->
+                        <div class="alert alert-danger mb-3" th:if="${loginError}" th:text="${loginError}"></div>
+
+                        <form th:action="@{/home/login}" method="post" th:object="${login}">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label">이름</label>
+                                    <input type="text" th:field="*{name}" class="form-control" placeholder="홍길동"
+                                           required/>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label d-block">응원 팀</label>
+                                    <div class="d-flex flex-wrap gap-2 mt-1">
+                                        <th:block th:each="team : ${teams}">
+                                            <input type="radio" class="btn-check" th:id="${'l-team-' + team.name()}"
+                                                   th:field="*{supportTeam}" th:value="${team.name()}"
+                                                   autocomplete="off" required/>
+                                            <label class="team-chip" th:for="${'l-team-' + team.name()}"
+                                                   th:text="${team.displayName}"></label>
+                                        </th:block>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">로그인</button>
                                 </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
 
