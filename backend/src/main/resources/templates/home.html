@@ -101,23 +101,46 @@
                      role="tabpanel" aria-labelledby="login-tab"
                      th:classappend="${activeTab}=='login' ? ' show active' : ''">
 
-                    <!-- ✅ 로그인 성공 상태 -->
-                    <div th:if="${member != null}" class="alert alert-success d-flex align-items-center gap-2 mb-3">
-                        <span class="badge bg-success">로그인됨</span>
-                        <span>
-                          <b th:text="${member.name}">홍길동</b> 님 ·
-                          <span th:text="${member.supportTeam}">TEAM</span>
-                        </span>
-                        <a class="btn btn-outline-secondary btn-sm ms-auto" th:href="@{/home/preferences}">
-                            응원팀/알림 설정
-                        </a>
-                        <a class="btn btn-outline-primary btn-sm ms-2" th:href="@{/signup_success}">
-                            텔레그램 봇 연결하기
-                        </a>
-                        <form th:action="@{/home/logout}" method="post" class="ms-2">
-                            <button type="submit" class="btn btn-outline-danger btn-sm">로그아웃</button>
-                        </form>
-                    </div>
+                    <!-- ✅ 로그인 성공 상태 (모바일 최적화) -->
+<div th:if="${member != null}" class="alert alert-success login-status mb-3">
+  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-2">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="badge bg-success">로그인됨</span>
+      <div class="who fw-semibold">
+        <span th:text="${member.name}">홍길동</span>
+        <span class="text-muted">님 ·</span>
+        <span class="badge text-bg-light"
+              th:text="${member.supportTeam.displayName}">한화</span>
+      </div>
+    </div>
+
+    <!-- actions: 모바일은 세로(풀폭), md↑는 가로 정렬 -->
+    <div class="actions d-grid gap-2 w-100 w-md-auto ms-md-auto">
+      <a class="btn btn-outline-secondary btn-sm" th:href="@{/home/preferences}">
+        응원팀/알림 설정
+      </a>
+      <a class="btn btn-outline-primary btn-sm" th:href="@{/signup_success}">
+        텔레그램 봇 연결하기
+      </a>
+      <form th:action="@{/home/logout}" method="post" class="m-0">
+        <button type="submit" class="btn btn-outline-danger btn-sm w-100 w-md-auto">로그아웃</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+/* 모바일 가독성 향상 */
+.login-status .who { line-height: 1.2; white-space: nowrap; }
+/* 버튼 전체폭(모바일) */
+@media (max-width: 576px) {
+  .login-status .actions { grid-template-columns: 1fr; }
+}
+/* 가로 정렬(md+) */
+@media (min-width: 768px) {
+  .login-status .actions { display: flex !important; gap: .5rem; }
+}
+</style>
 
                     <!-- 로그인 폼 (로그인 전) -->
                     <div th:if="${member == null}">
