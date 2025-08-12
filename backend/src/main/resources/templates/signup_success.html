@@ -19,12 +19,20 @@
                 </ol>
                 <p class="help-text">이제부터 <strong>실시간 역전 알림</strong>, <strong>우천 취소 알림</strong>, <strong>AI 경기
                     분석</strong>을 받아볼 수 있어요.</p>
-                <div class="d-flex flex-wrap gap-2 mt-3">
-                    <a class="btn btn-outline-secondary" href="https://t.me/baseball_ai_agent_bot" target="_blank"
-                       rel="noopener">
-                        @baseball_ai_agent_bot
+                <div class="d-flex flex-wrap gap-2 mt-3" th:if="${member != null}">
+                    <a class="btn btn-outline-secondary"
+                       th:href="@{/auth/telegram/link(memberId=${member.id})}">
+                        텔레그램 봇 연결
                     </a>
+                    <small class="text-muted">버튼을 누르면 텔레그램이 열리고 자동으로 연동됩니다.</small>
                 </div>
+
+                <!-- 연동 완료 표시 (선택) -->
+                <div th:if="${member != null and !#strings.isEmpty(member.telegramId)}" class="mt-3">
+                    <span class="badge bg-success">연동 완료</span>
+                    <small class="text-muted ms-2">ID: <span th:text="${member.telegramId}"></span></small>
+                </div>
+
             </div>
         </div>
     </div>

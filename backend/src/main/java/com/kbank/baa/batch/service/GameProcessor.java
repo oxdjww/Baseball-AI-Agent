@@ -3,6 +3,7 @@ package com.kbank.baa.batch.service;
 import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.Team;
 import com.kbank.baa.batch.tasklet.GameAnalysisTasklet;
+import com.kbank.baa.sports.GameMessageFormatter;
 import com.kbank.baa.sports.SportsApiClient;
 import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
 import com.kbank.baa.sports.dto.ScheduledGameDto;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -30,6 +32,7 @@ public class GameProcessor {
     private final TaskScheduler taskScheduler;
     private final GameAnalysisTasklet gameAnalysisTasklet;
     private final TelegramService telegramService;
+    private final GameMessageFormatter gameMessageFormatter;
 
     public void process(ScheduledGameDto schedule, List<Member> members) {
         var gameId = schedule.getGameId();
@@ -72,8 +75,17 @@ public class GameProcessor {
                 String homeTeamCode = info.getHomeTeamCode();
                 String awayTeamName = Team.getDisplayNameByCode(awayTeamCode);
                 String homeTeamName = Team.getDisplayNameByCode(homeTeamCode);
-                String gameEndMessageAway = String.format("🧢 금일 %s와의 경기가 종료되었습니다.\n\n⚾️ 1시간 뒤, Ai 게임 분석 레포트가 전송됩니다!\n\n감사합니다.", homeTeamName);
-                String gameEndMessageHome = String.format("🧢 금일 %s와의 경기가 종료되었습니다.\n\n⚾️ 1시간 뒤, Ai 게임 분석 레포트가 전송됩니다!\n\n감사합니다.", awayTeamName);
+                String gameEndMessageAway = String.format(
+                        "📢 금일 %s의 경기가 종료되었습니다.\n🏟️ 최종 스코어: %s %d : %d %s\n\n⚾️ 1시간 뒤, Ai 게임 분석 레포트가 전송됩니다!\n\n감사합니다.",
+                        gameMessageFormatter.withParticle(homeTeamName, "과", "와")
+                        , awayTeamName, info.getAwayScore(), info.getHomeScore(), homeTeamName
+                );
+
+                String gameEndMessageHome = String.format(
+                        "📢 금일 %s의 경기가 종료되었습니다.\n🏟️ 최종 스코어: %s %d : %d %s\n\n⚾️ 1시간 뒤, Ai 게임 분석 레포트가 전송됩니다!\n\n감사합니다.",
+                        gameMessageFormatter.withParticle(awayTeamName, "과", "와")
+                        , awayTeamName, info.getAwayScore(), info.getHomeScore(), homeTeamName
+                );
                 telegramService.sendMessageToTeam(awayTeamCode, gameEndMessageAway);
                 telegramService.sendMessageToTeam(homeTeamCode, gameEndMessageHome);
 

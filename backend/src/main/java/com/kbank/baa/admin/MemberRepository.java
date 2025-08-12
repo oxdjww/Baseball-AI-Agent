@@ -16,4 +16,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     List<Member> findAllBySupportTeam(Team supportTeam);
 
     Optional<Member> findByNameAndSupportTeamAndTelegramId(String name, Team supportTeam, String telegramId);
+
+    Optional<Member> findByNameAndSupportTeam(String name, Team supportTeam);
 }
