@@ -34,6 +34,8 @@ public class TelegramWebhookController {
         Map<String, Object> chat = (Map<String, Object>) message.get("chat");
         String text = (String) message.getOrDefault("text", "");
 
+        log.info("[TG] text={}", text);
+
         Long telegramUserId = ((Number) from.get("id")).longValue(); // 고유 사용자 ID
         Long chatId = ((Number) chat.get("id")).longValue();
 
@@ -41,6 +43,8 @@ public class TelegramWebhookController {
             String token = text.substring(7).trim();
             String key = "tg:link:" + token;
             String memberIdStr = redis.opsForValue().get(key);
+
+            log.info("[TG] token={} -> memberId={}", token, memberIdStr);
 
             if (memberIdStr != null) {
                 Long memberId = Long.valueOf(memberIdStr);
