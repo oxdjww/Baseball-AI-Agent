@@ -11,6 +11,14 @@ services:
     ports:
       - "5432:5432"
 
+  redis:
+    container_name: baa-redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
   backend:
     container_name: baa-backend
     build:
@@ -18,9 +26,10 @@ services:
       dockerfile: Dockerfile
     image: oxdjww/baa-backend:latest
     depends_on:
+      - redis
       - db
     env_file:
-      - .env                           # ← .env 파일 로드
+      - .env
     environment:
       # Spring Boot application.yml에서 참조하는 변수들
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
@@ -33,6 +42,8 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
 
     ports:
       - "8080:8080"
@@ -43,3 +54,4 @@ services:
 
 volumes:
   db_data:
+  redis_data:

@@ -61,11 +61,11 @@ public class GameMessageFormatter {
     public String formatScoreboard(JsonNode scoreBoard) {
         final int TEAM_COL = 4;   // "AWAY" / "HOME" 길이
         final int TEAM_GAP = 2;   // 팀라벨-이닝 사이 간격
-        final int INN_W   = 2;    // 이닝/점수 폭 (두 자리 대응)
+        final int INN_W = 2;    // 이닝/점수 폭 (두 자리 대응)
         final int INN_GAP = 1;    // 이닝 칸 사이 공백
-        final int SUM_W   = 2;    // R/H/E/B 폭
+        final int SUM_W = 2;    // R/H/E/B 폭
         final int SUM_GAP = 2;    // 이닝 블록 ↔ 합계 블록 간 공백
-        final String NP   = "-";  // 안 친 이닝
+        final String NP = "-";  // 안 친 이닝
 
         JsonNode rA = scoreBoard.path("rheb").path("away");
         JsonNode rH = scoreBoard.path("rheb").path("home");
@@ -129,19 +129,41 @@ public class GameMessageFormatter {
         int pad = Math.max(0, w - s.length());
         return repeat(' ', pad) + s;
     }
+
     private static String padRightChars(String s, int w) {
         if (s == null) s = "";
         if (s.length() > w) s = s.substring(0, w);
         int pad = w - s.length();
         return s + repeat(' ', pad);
     }
+
     private static String repeat(char c, int n) {
         StringBuilder sb = new StringBuilder(n);
         for (int i = 0; i < n; i++) sb.append(c);
         return sb.toString();
     }
+
     private static String escapeHtml(String s) {
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
+    public String withParticle(String word, String particleWithBatchim, String particleWithoutBatchim) {
+        if (word == null || word.isEmpty()) return word;
+
+        char lastChar = word.charAt(word.length() - 1);
+
+        // 한글이 아니면 기본적으로 받침 없는 조사 적용
+        if (lastChar < 0xAC00 || lastChar > 0xD7A3) {
+            return word + particleWithoutBatchim;
+        }
+
+        int baseCode = lastChar - 0xAC00;
+        int jongseong = baseCode % 28;
+
+        if (jongseong == 0) { // 받침 없음
+            return word + particleWithoutBatchim;
+        } else { // 받침 있음
+            return word + particleWithBatchim;
+        }
+    }
 }

@@ -53,20 +53,12 @@
                                 <div class="d-flex flex-wrap gap-2 mt-1">
                                     <th:block th:each="team : ${teams}">
                                         <input type="radio" class="btn-check" th:id="${'s-team-' + team.name()}"
-                                               th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off" required/>
+                                               th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off"
+                                               required/>
                                         <label class="team-chip" th:for="${'s-team-' + team.name()}"
                                                th:text="${team.displayName}"></label>
                                     </th:block>
                                 </div>
-                            </div>
-
-                            <div class="col-12 col-md-6">
-                                <label class="form-label">텔레그램ID</label>
-                                <div class="input-group">
-                                    <input type="text" th:field="*{telegramId}" class="form-control" placeholder="@nickname 또는 숫자 ID" required/>
-                                    <a class="btn btn-outline-secondary" href="https://t.me/userinfobot" target="_blank" rel="noopener">@userinfobot</a>
-                                </div>
-                                <div class="form-text">userinfobot로 이동 후 <code>/start</code>를 보내면 ID를 알려줍니다.</div>
                             </div>
 
                             <!-- 알림 수신 여부 -->
@@ -74,19 +66,22 @@
                                 <div class="row g-3">
                                     <div class="col-12 col-md-4">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" th:field="*{notifyGameAnalysis}" id="s-opt1"/>
+                                            <input class="form-check-input" type="checkbox"
+                                                   th:field="*{notifyGameAnalysis}" id="s-opt1"/>
                                             <label class="form-check-label" for="s-opt1">경기 분석 알림</label>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-4">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" th:field="*{notifyRainAlert}" id="s-opt2"/>
+                                            <input class="form-check-input" type="checkbox"
+                                                   th:field="*{notifyRainAlert}" id="s-opt2"/>
                                             <label class="form-check-label" for="s-opt2">우천 알림</label>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-4">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" th:field="*{notifyRealTimeAlert}" id="s-opt3"/>
+                                            <input class="form-check-input" type="checkbox"
+                                                   th:field="*{notifyRealTimeAlert}" id="s-opt3"/>
                                             <label class="form-check-label" for="s-opt3">실시간 역전 알림</label>
                                         </div>
                                     </div>
@@ -120,24 +115,12 @@
                                 <div class="d-flex flex-wrap gap-2 mt-1">
                                     <th:block th:each="team : ${teams}">
                                         <input type="radio" class="btn-check" th:id="${'l-team-' + team.name()}"
-                                               th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off" required/>
+                                               th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off"
+                                               required/>
                                         <label class="team-chip" th:for="${'l-team-' + team.name()}"
                                                th:text="${team.displayName}"></label>
                                     </th:block>
                                 </div>
-                            </div>
-
-                            <div class="col-12 col-md-6">
-                                <label class="form-label">텔레그램ID</label>
-                                <div class="input-group">
-                                    <input type="text" th:field="*{telegramId}" class="form-control" placeholder="@nickname 또는 숫자 ID" required/>
-                                    <a class="btn btn-outline-secondary" href="https://t.me/userinfobot" target="_blank" rel="noopener">@userinfobot</a>
-                                </div>
-                                <div class="form-text">userinfobot로 이동 후 <code>/start</code>를 보내면 ID를 알려줍니다.</div>
-                            </div>
-
-                            <div class="col-12 d-flex gap-2">
-                                <button type="submit" class="btn btn-primary">로그인</button>
                             </div>
                         </div>
                     </form>
@@ -146,7 +129,8 @@
 
             <!-- 🔔 로그인 실패 토스트 (팝업) -->
             <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100;" th:if="${loginError}">
-                <div id="loginErrorToast" class="toast text-bg-danger" role="alert" aria-live="assertive" aria-atomic="true">
+                <div id="loginErrorToast" class="toast text-bg-danger" role="alert" aria-live="assertive"
+                     aria-atomic="true">
                     <div class="toast-header">
                         <strong class="me-auto">로그인 실패</strong>
                         <small>지금</small>
@@ -162,12 +146,12 @@
 
 <!-- 토스트만 표시 (탭 전환 JS 없음) -->
 <script th:inline="javascript">
-    document.addEventListener('DOMContentLoaded', function(){
+    document.addEventListener('DOMContentLoaded', function () {
         var hasError = /*[[${loginError} != null]]*/ false;
-        if(hasError){
+        if (hasError) {
             var toastEl = document.getElementById('loginErrorToast');
-            if(toastEl){
-                var toast = new bootstrap.Toast(toastEl, { delay: 3500 });
+            if (toastEl) {
+                var toast = new bootstrap.Toast(toastEl, {delay: 3500});
                 toast.show();
             }
         }
