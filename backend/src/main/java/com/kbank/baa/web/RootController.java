@@ -9,4 +9,19 @@ public class RootController {
     public String index() {
         return "redirect:/home";
     }
+
+    @GetMapping("/health")
+    public String health() {
+        return "health";
+    }
+
+    @GetMapping("/health-check")
+    public String health_check() {
+        return "health-check";
+    }
+
+    @GetMapping("/healthcheck")
+    public String healthcheck() {
+        return "healthcheck";
+    }
 }
