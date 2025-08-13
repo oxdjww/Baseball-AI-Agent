@@ -5,6 +5,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
+
 @Controller
 @RequestMapping("/admin/members")
 @RequiredArgsConstructor
@@ -14,7 +16,9 @@ public class AdminMemberController {
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("members", memberRepository.findAll());
+        model.addAttribute("members", memberRepository.findAll().stream()
+                .sorted(Comparator.comparing(Member::getId))
+                .toList());
         return "member/list";
     }
 

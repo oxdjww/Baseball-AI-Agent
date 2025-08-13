@@ -33,15 +33,15 @@ public class GameAnalysisTasklet {
         String gameId = schedule.getGameId();
         String dateLabel = schedule.getGameDateTime()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        log.info("##### GameAnalysis START → gameId={} #####", gameId);
-        log.info("[GameAnalysis] Tasklet 시작 → 경기일={}, 경기장={}", dateLabel, schedule.getStadium());
+        log.info("[GameAnalysis][execute] GameAnalysis START → gameId={} #####", gameId);
+        log.info("[GameAnalysis][execute] Tasklet 시작 → 경기일={}, 경기장={}", dateLabel, schedule.getStadium());
 
         // 1) 네이버 스포츠 기록 API 호출
         String url = "https://api-gw.sports.naver.com/schedule/games/" + gameId + "/record";
-        log.info("[GameAnalysis] 기록 API 호출 URL={} for gameId={}", url, gameId);
+        log.info("[GameAnalysis][execute] 기록 API 호출 URL={} for gameId={}", url, gameId);
         JsonNode root = restTemplate.getForObject(url, JsonNode.class);
         if (root == null || !root.has("result")) {
-            log.error("[GameAnalysis] recordData 없음 → gameId={}", gameId);
+            log.error("[GameAnalysis][execute] recordData 없음 → gameId={}", gameId);
             return;
         }
         // root record
@@ -167,28 +167,26 @@ public class GameAnalysisTasklet {
         }
 
         // 4) AI 호출 & 메시지 전송 (기존 로직 유지)
-        log.info("[GameAnalysis] Prompt: {}", prompt);
+        log.info("[GameAnalysis][execute] Prompt: {}", prompt);
         String analysis = "fake analysis\n";
         try {
             analysis = chatModel.call(prompt);
         } catch (Exception e) {
-            log.error("[GameAnalysis] AI 호출 실패", e);
+            log.error("[GameAnalysis][execute] AI 호출 실패", e);
             analysis = "⚠️ AI 분석 중 오류 발생";
         }
 
 
         // 5) 대상 멤버 필터링 및 전송
         List<Member> targets = memberRepo.findByNotifyGameAnalysisTrue();
-        log.info("[GameAnalysis] 대상 멤버 수: {}명", targets.size());
+        log.info("[GameAnalysis][execute] 대상 멤버 수: {}명", targets.size());
         for (Member m : targets) {
-            log.info("[GameAnalysis] 회원 검토 → 이름={}, 응원팀={}", m.getName(), m.getSupportTeam());
+            log.info("[GameAnalysis][execute] 회원 검토 → 이름={}, 응원팀={}", m.getName(), m.getSupportTeam());
             boolean isHome = String.valueOf(m.getSupportTeam()).equals(schedule.getHomeTeamCode());
             boolean isAway = String.valueOf(m.getSupportTeam()).equals(schedule.getAwayTeamCode());
             log.info("[GameAnalysis] filter 결과 → isHome={}, isAway={}", isHome, isAway);
             if (!(isHome || isAway)) continue;
 
-            // 분석 응답 포맷팅
-            // 분석 응답 포맷팅
             // 한 줄 요약(3번째 파트)은 빼고, 승/패팀 요인만 취급
             String[] parts = analysis.split("\n\n", 2);
             String winFactors = parts[0];
@@ -209,14 +207,14 @@ public class GameAnalysisTasklet {
                     loser, loseFactors
             );
 
-            log.info("[GameAnalysis] sendMessage 호출 직전 → chatId={}, preview=[{}]...",
+            log.info("[GameAnalysis][execute] sendMessage 호출 직전 → chatId={}, preview=[{}]...",
                     m.getTelegramId(), formatted.substring(0, Math.min(40, formatted.length())));
-            telegramService.sendMessage(m.getTelegramId(), m.getName(), formatted);
-            log.info("[GameAnalysis] sendMessage 완료 → chatId={}", m.getTelegramId());
+            telegramService.sendPersonalMessage(m.getTelegramId(), m.getName(), formatted);
+            log.info("[GameAnalysis][execute] sendMessage 완료 → chatId={}", m.getTelegramId());
         }
 
 
-        log.info("##### GameAnalysis END → gameId={} #####", gameId);
+        log.info("[GameAnalysis][execute] GameAnalysis END → gameId={} #####", gameId);
     }
 
 }

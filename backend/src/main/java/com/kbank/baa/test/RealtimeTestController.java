@@ -27,9 +27,9 @@ public class RealtimeTestController {
             ChunkContext dummyChunkContext = new ChunkContext(new StepContext(dummyStepExecution));
 
             RepeatStatus status = tasklet.execute(dummyContribution, dummyChunkContext);
-            return "✅ Tasklet 실행 완료: " + status;
+            return "[RealtimeTestController][runRealTimeAlertTasklet] ✅ Tasklet 실행 완료: " + status;
         } catch (Exception e) {
-            log.error("❌ Tasklet 실행 실패", e);
+            log.error("[RealtimeTestController][runRealTimeAlertTasklet] ❌ Tasklet 실행 실패", e);
             return "❌ 실행 실패: " + e.getMessage();
         }
     }

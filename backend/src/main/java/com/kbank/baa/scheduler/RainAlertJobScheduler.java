@@ -43,7 +43,7 @@ public class RainAlertJobScheduler {
     }
 
     private void scheduleAlertsFor(LocalDate date) {
-        log.info("##### Scheduling rain alerts for date {}", date);
+        log.info("[RainAlertJobScheduler][scheduleAlertsFor] Scheduling rain alerts for date {}", date);
         List<ScheduledGameDto> games = apiClient.fetchScheduledGames(date, date);
         for (ScheduledGameDto game : games) {
             scheduleForGame(game, 3, 10);
@@ -61,10 +61,10 @@ public class RainAlertJobScheduler {
                     () -> rainTasklet.executeForGame(game, alertTime, hoursBefore, thresholdMm),
                     when
             );
-            log.info("##### → scheduled alert for game {} at {} ({}h before)",
+            log.info("[RainAlertJobScheduler][scheduleForGame] → scheduled alert for game {} at {} ({}h before)",
                     game.getGameId(), alertTime, hoursBefore);
         } else {
-            log.debug("##### → skipping past alert time {} for game {}", alertTime, game.getGameId());
+            log.debug("[RainAlertJobScheduler][scheduleForGame] → skipping past alert time {} for game {}", alertTime, game.getGameId());
         }
     }
 }

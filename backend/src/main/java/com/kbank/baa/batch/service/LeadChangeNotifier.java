@@ -38,7 +38,7 @@ public class LeadChangeNotifier {
         });
 
         String prevLeader = prevRef.get();
-        log.info("########## 리더 변경 체크 → gameId={}, {} → {} ##########",
+        log.info("[LeadChangeNotifier][notify] 리더 변경 체크 → gameId={}, {} → {}",
                 gameId, prevLeader, currLeader);
 
         // 리더가 바뀌었을 때만 알림
@@ -47,17 +47,17 @@ public class LeadChangeNotifier {
                 try {
                     // 내팀, 상대팀 역전시 양팀 팬에게 모두 알림
                     String text = formatter.formatLeadChange(m, info, prevLeader, currLeader);
-                    telegram.sendMessage(m.getTelegramId(), m.getName(), text);
-                    log.info("########## 역전알림 전송 → member={} gameId={} ##########",
+                    telegram.sendPersonalMessage(m.getTelegramId(), m.getName(), text);
+                    log.info("[LeadChangeNotifier][notify] 역전알림 전송 → member={} gameId={}",
                             m.getName(), gameId);
                 } catch (Exception e) {
-                    log.error("########## 역전알림 에러 → member={} : {} ##########",
+                    log.error("[LeadChangeNotifier][notify] 역전알림 에러 → member={} : {}",
                             m.getName(), e.getMessage(), e);
                 }
             });
-            log.info("########## 역전알림 완료 → gameId={} ##########", gameId);
+            log.info("[LeadChangeNotifier][notify] 역전알림 완료 → gameId={}", gameId);
         } else {
-            log.info("########## 리더 변경 없음 → gameId={} (leader={}) ##########",
+            log.info("[LeadChangeNotifier][notify] 리더 변경 없음 → gameId={} (leader={})",
                     gameId, currLeader);
         }
     }

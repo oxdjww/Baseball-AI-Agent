@@ -29,7 +29,7 @@ public class RainfallService {
     public double getRainfallByTeam(String teamCode, LocalDateTime baseTime) {
         Team team = Team.of(teamCode);
         String raw = fetchRawCsv(team.getStn(), baseTime);
-        log.debug("Received raw CSV:\n{}", raw);
+        log.debug("[RainfallService][getRainfallByTeam] Received raw CSV:\n{}", raw);
 
         String[] header = null;
         String[] data = null;
@@ -45,7 +45,7 @@ public class RainfallService {
 
         // ◆ 관측값이 없으면 정상(0.0) 처리
         if (header == null || data == null) {
-            log.debug("강수량 데이터 없음(정상): header={} data={}", header, data);
+            log.debug("[RainfallService][getRainfallByTeam] 강수량 데이터 없음(정상): header={} data={}", header, data);
             return 0.0;
         }
 
@@ -62,7 +62,7 @@ public class RainfallService {
 
         // ◆ RN 컬럼이 하나도 없으면 정상(0.0) 처리
         if (maxRain < 0) {
-            log.debug("RN 컬럼 값 없음(정상): header={} / data={}",
+            log.debug("[RainfallService][getRainfallByTeam] RN 컬럼 값 없음(정상): header={} / data={}",
                     String.join(" ", header),
                     String.join(" ", data));
             return 0.0;
@@ -88,7 +88,7 @@ public class RainfallService {
                 .queryParam("authKey", apiKey)
                 .toUriString();
 
-        log.debug("KMA 요청 URL: {}", url);
+        log.debug("[RainfallService][fetchRawCsv] KMA 요청 URL: {}", url);
         return rest.getForObject(url, String.class);
     }
 
@@ -100,7 +100,7 @@ public class RainfallService {
         try {
             return Double.parseDouble(s);
         } catch (NumberFormatException e) {
-            log.warn("숫자 파싱 실패 '{}'", s);
+            log.warn("[RainfallService][parseDouble] 숫자 파싱 실패 '{}'", s);
             return fallback;
         }
     }

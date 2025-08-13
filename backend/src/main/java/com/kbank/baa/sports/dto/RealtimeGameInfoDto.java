@@ -19,6 +19,7 @@ public class RealtimeGameInfoDto {
     private String homeTeamName;         // ex. "LG"
     private String awayTeamName;         // ex. "롯데"
     private String winner;
+    private Boolean isCanceled;          // ex. False
 
     // — 실시간 스코어
     private String inning;               // ex. "9회말"

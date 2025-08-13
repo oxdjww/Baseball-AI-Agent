@@ -77,10 +77,10 @@ public class LeadChangeNotifierTest {
         // 첫 호출: leaderMap 에 아무 값도 없으니, prev="NONE" → curr="LG" 로 변경 감지
         notifier.notify(schedule, List.of(homeFan, awayFan), info);
 
-        // 검증: 두 멤버 모두에게 sendMessage가 호출되어야 한다
+        // 검증: 두 멤버 모두에게 sendMessage가 호출되어야 함
         verify(telegram, times(1))
-                .sendMessage("t1", "Alice", "[홈팀 역전] Alice 메시지");
+                .sendPersonalMessage("t1", "Alice", "[홈팀 역전] Alice 메시지");
         verify(telegram, times(1))
-                .sendMessage("t2", "Bob", "[어웨이팀 역전] Bob 메시지");
+                .sendPersonalMessage("t2", "Bob", "[어웨이팀 역전] Bob 메시지");
     }
 }

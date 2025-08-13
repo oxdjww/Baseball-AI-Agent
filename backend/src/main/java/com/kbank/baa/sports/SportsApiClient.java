@@ -40,7 +40,7 @@ public class SportsApiClient {
                 .queryParam("toDate", to)
                 .toUriString();
 
-        log.info("########## Generated Url: {}", url);
+        log.info("[SportsApiClient][fetchScheduledGames] Generated Url: {}", url);
 
         ResponseEntity<JsonNode> resp = restTemplate.getForEntity(url, JsonNode.class);
         JsonNode root = Optional.ofNullable(resp.getBody())
@@ -86,6 +86,7 @@ public class SportsApiClient {
                 .inning(g.path("currentInning").asText())
                 .homeScore(g.path("homeTeamScore").asInt())
                 .awayScore(g.path("awayTeamScore").asInt())
+                .isCanceled(g.path("cancel").asBoolean())
                 .build();
     }
 

@@ -3,83 +3,85 @@ package com.kbank.baa.telegram;
 import com.kbank.baa.admin.Member;
 import com.kbank.baa.admin.MemberRepository;
 import com.kbank.baa.admin.Team;
+import com.kbank.baa.telegram.dto.ParseMode;
+import com.kbank.baa.telegram.dto.TelegramMessage;
+import com.kbank.baa.telegram.template.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class TelegramService {
-    private final TelegramProperties props;
-    private final RestTemplate rt = new RestTemplate();
+
+    private static final String NAME_PREFIX_PATTERN = "%s님, %s"; // 공통 개인화 패턴
+
     private final MemberRepository memberRepository;
+    private final TelegramClient telegramClient;
 
-    // 멤버별 chatId로 전송
-    public void sendMessage(String chatId, String name, String text) {
-        String url = props.getApiUrl() + "sendMessage";
+    /**
+     * 1) 단건 전송(개인화 포함)
+     */
+    public void sendPersonalMessage(String chatId, String name, String rawText) {
+        String personalized = String.format(NAME_PREFIX_PATTERN, name, rawText);
 
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        String textWithName = String.format("%s님, %s", name, text);
-        body.add("chat_id", chatId);
-        body.add("text", textWithName);
-        body.add("parse_mode", "HTML");
-        // 전송 시도 로깅
-        log.info("→ [TelegramService] sendMessage 호출 시작: chatId={}, name={}, textPreview={}...",
-                chatId, name,
-                textWithName.length() > 50 ? textWithName.substring(0, 50) : textWithName);
+        TelegramMessage msg = TelegramMessage.builder()
+                .chatId(chatId)
+                .text(personalized)
+                .parseMode(ParseMode.HTML)
+                .build();
 
-        try {
-            ResponseEntity<String> resp = rt.postForEntity(url, body, String.class);
-            // 응답 로깅
-            log.info("← [TelegramService] sendMessage 응답: {} 님께 메시지 전송 완료. statusCode={}",
-                    name, resp.getStatusCodeValue());
-        } catch (Exception ex) {
-            // 예외 로깅
-            log.error("✖ [TelegramService] sendMessage 실패: chatId={}, error={}", chatId, ex.getMessage(), ex);
-        }
+        telegramClient.sendMessage(msg);
     }
 
-    public void sendMessageToTeam(String teamCode, String text) {
-        Team team;
+    /**
+     * 2) 템플릿 기반 단건 전송(개인화 포함)
+     */
+    public void sendTemplateMessage(String chatId, String name, NotificationTemplate template, Object... args) {
+        String text = template.format(args);
+        sendPersonalMessage(chatId, name, text);
+    }
+
+    /**
+     * 3) 팀 팬 전체에게 전송
+     */
+    public void sendMessageToTeam(String teamCode, NotificationTemplate template, Object... args) {
+        final Team team;
         try {
             team = Team.valueOf(teamCode);
         } catch (IllegalArgumentException ex) {
-            log.warn("Invalid teamCode='{}'로 팀 조회 불가", teamCode);
+            log.warn("[TelegramService][sendMessageToTeam] Invalid teamCode='{}'로 팀 조회 불가", teamCode);
             return;
         }
 
         List<Member> supporters = memberRepository.findAllBySupportTeam(team);
         if (supporters.isEmpty()) {
-            log.info("→ [TelegramService] 팀 {} 팬이 없어 메시지 스킵", team);
+            log.info("[TelegramService][sendMessageToTeam] → 팀 {} 팬이 없어 메시지 스킵", team);
             return;
         }
 
-        for (Member member : supporters) {
-            sendMessage(
-                    member.getTelegramId(),
-                    member.getName(),
-                    text
-            );
-        }
+        String rawText = template.format(args);
+        supporters.forEach(m -> sendPersonalMessage(m.getTelegramId(), m.getName(), rawText));
     }
 
-    public void sendMessageToAllMembers(String message) {
+    /**
+     * 4) 전체 공지 (템플릿 공통화)
+     */
+    public void sendAnnouncementToAllMembers(String bodyText) {
         List<Member> members = memberRepository.findAll();
-        String fullText = String.format("<b>새로운 공지사항이 있어요!</b>\n\n%s\n\n감사합니다.", message);
+        String rawText = NotificationTemplate.ANNOUNCEMENT.format(bodyText);
 
-        for (Member member : members) {
-            sendMessage(
-                    member.getTelegramId(),
-                    member.getName(),
-                    fullText
-            );
-        }
+        members.forEach(m -> sendPersonalMessage(m.getTelegramId(), m.getName(), rawText));
+    }
+
+    /**
+     * 5) 기존 코드 레거시
+     */
+    @Deprecated
+    public void sendMessageToAllMembers_Legacy(String message) {
+        sendAnnouncementToAllMembers(message);
     }
 }

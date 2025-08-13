@@ -25,13 +25,13 @@ public class RealtimeJobScheduler {
      */
     @Scheduled(cron = "0 0/3 13-22 * * *", zone = "Asia/Seoul")
     public void runRealTimeAlert() throws Exception {
-        log.info("########## [realTimeAlertJob] 실행 시도");
+        log.info("[RealtimeJobScheduler][runRealTimeAlert] 실행 시도");
 
         jobLauncher.run(realTimeAlertJob,
                 new JobParametersBuilder()
                         .addLong("time", System.currentTimeMillis())
                         .addString("run.id", UUID.randomUUID().toString())
                         .toJobParameters());
-        log.info("########## [realTimeAlertJob] 실행 요청 완료");
+        log.info("[RealtimeJobScheduler][runRealTimeAlert] 실행 요청 완료");
     }
 }

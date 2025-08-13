@@ -33,13 +33,9 @@ spring:
         host: redis
         port: 6379
 
-
-
-
 telegram:
   bot-token: ${TELEGRAM_BOT_TOKEN}
 
 kma:
   api:
     key: ${KMA_API_KEY}
-
