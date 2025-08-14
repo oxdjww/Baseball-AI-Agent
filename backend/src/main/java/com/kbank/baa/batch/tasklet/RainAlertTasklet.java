@@ -96,7 +96,7 @@ public class RainAlertTasklet implements Tasklet {
                 );
             }
         }
-        log.debug("[RainAlertTasklet][executeForGame] Generated text: {}", text);
+        log.info("[RainAlertTasklet][executeForGame] Generated text: {}", text);
 
         // 5) 홈팀 멤버에게 전송
         homeMembers.forEach(m -> {

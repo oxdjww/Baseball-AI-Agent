@@ -64,7 +64,7 @@ public class RainAlertJobScheduler {
             log.info("[RainAlertJobScheduler][scheduleForGame] → scheduled alert for game {} at {} ({}h before)",
                     game.getGameId(), alertTime, hoursBefore);
         } else {
-            log.debug("[RainAlertJobScheduler][scheduleForGame] → skipping past alert time {} for game {}", alertTime, game.getGameId());
+            log.info("[RainAlertJobScheduler][scheduleForGame] → skipping past alert time {} for game {}", alertTime, game.getGameId());
         }
     }
 }

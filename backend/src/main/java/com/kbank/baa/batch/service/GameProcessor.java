@@ -54,7 +54,11 @@ public class GameProcessor {
             return;
         }
 
-        if (!"STARTED".equals(info.getStatusCode())) {
+        if ("STARTED".equals(info.getStatusCode())) {
+            // 진행 중: 역전 알림 처리
+            leadNotifier.notify(schedule, members, info);
+        } else {
+            // 게임 진행 중 X
             log.info("[GameProcessor][process] STATUS={} [{}] {} vs {}",
                     info.getStatusCode(),
                     info.getGameId(),
@@ -64,7 +68,7 @@ public class GameProcessor {
             if (("ENDED".equals(info.getStatusCode()) || "RESULT".equals(info.getStatusCode()))
                     && !gameEndChecker.contains(info.getGameId())) {
 
-                log.debug("[GameProcessor][process] {} game ended", info.getGameId());
+                log.info("[GameProcessor][process] {} game ended", info.getGameId());
                 gameEndChecker.add(info.getGameId());
 
                 String awayTeamCode = info.getAwayTeamCode();
@@ -124,9 +128,6 @@ public class GameProcessor {
 
                 log.info("[GameProcessor][process] → scheduled game analysis for {} at {} (1h after end)", gameId, analysisTime);
             }
-        } else {
-            // 진행 중: 역전 알림 처리
-            leadNotifier.notify(schedule, members, info);
         }
 
         log.info("[GameProcessor][process] processGame 완료 → gameId={}", gameId);
