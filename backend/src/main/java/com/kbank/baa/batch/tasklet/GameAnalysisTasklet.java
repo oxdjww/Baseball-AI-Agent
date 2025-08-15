@@ -207,8 +207,8 @@ public class GameAnalysisTasklet {
                     loser, loseFactors
             );
 
-            log.info("[GameAnalysis][execute] sendMessage 호출 직전 → chatId={}, preview=[{}]...",
-                    m.getTelegramId(), formatted.substring(0, Math.min(40, formatted.length())));
+            log.info("[GameAnalysis][execute] sendMessage 호출 직전 → gameId={}, member={}, preview=[{}]...",
+                    gameId, m.getName(), formatted.substring(0, Math.min(40, formatted.length())));
             telegramService.sendPersonalMessage(m.getTelegramId(), m.getName(), formatted);
             log.info("[GameAnalysis][execute] sendMessage 완료 → chatId={}", m.getTelegramId());
         }
