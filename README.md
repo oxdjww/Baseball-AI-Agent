@@ -19,7 +19,8 @@ Baseball Ai Agent는 **KBO 실시간 경기 이벤트**를 수집하고,
 
 ## 🏗 시스템 아키텍처
 
-// 추가 예정
+<img width="868" height="286" alt="image" src="https://github.com/user-attachments/assets/ffe3751d-6580-4d43-a34d-0d8eff5a39a8" />
+
 
 ## 🧩 UML
 
