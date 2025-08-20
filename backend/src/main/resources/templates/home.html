@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
-    <title>홈 · Baseball Ai Agent</title>
+    <title>홈 · Baseball AI Agent</title>
     <th:block th:replace="~{fragments/layout :: head}"></th:block>
 </head>
 <body th:replace="~{fragments/layout :: layout(~{::section}, false)}">
@@ -44,12 +44,12 @@
                     <form th:action="@{/home/signup}" method="post" th:object="${signup}">
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
-                                <label class="form-label">이름</label>
+                                <label class="form-label">성함</label>
                                 <input type="text" th:field="*{name}" class="form-control" placeholder="홍길동" required/>
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label d-block">응원 팀</label>
+                                <label class="form-label d-block">응원팀</label>
                                 <div class="d-flex flex-wrap gap-2 mt-1">
                                     <th:block th:each="team : ${teams}">
                                         <input type="radio" class="btn-check" th:id="${'s-team-' + team.name()}"
@@ -67,22 +67,22 @@
                                     <div class="col-12 col-md-4">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox"
-                                                   th:field="*{notifyGameAnalysis}" id="s-opt1"/>
-                                            <label class="form-check-label" for="s-opt1">경기 분석 알림</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox"
                                                    th:field="*{notifyRainAlert}" id="s-opt2"/>
-                                            <label class="form-check-label" for="s-opt2">우천 알림</label>
+                                            <label class="form-check-label" for="s-opt2">우천 취소 알림 ☔</label>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-4">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox"
                                                    th:field="*{notifyRealTimeAlert}" id="s-opt3"/>
-                                            <label class="form-check-label" for="s-opt3">실시간 역전 알림</label>
+                                            <label class="form-check-label" for="s-opt3">실시간 역전/동점 알림 🚀</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox"
+                                                   th:field="*{notifyGameAnalysis}" id="s-opt1"/>
+                                            <label class="form-check-label" for="s-opt1">AI 경기 분석 레포트 🧠</label>
                                         </div>
                                     </div>
                                 </div>
