@@ -36,7 +36,10 @@ public class GameMessageFormatter {
         String awayTeamName = info.getAwayTeamName();
         String homeTeamName = info.getHomeTeamName();
 
+        String memberSupportTeamName = m.getSupportTeam().getDisplayName();
+
         if ("NONE".equals(currLeader)) {
+            // 동점 상황
             return String.format(
                     "[<b>%s</b> VS <b>%s</b>] 경기 상황에 변동이 있어요!\n" +
                             "경기가 <b>%d : %d</b> 동점이 되었습니다! 🔥",
@@ -46,15 +49,32 @@ public class GameMessageFormatter {
                     homeTeamScore
             );
         } else {
-            return String.format(
-                    "[<b>%s</b> VS <b>%s</b>] 경기 상황에 변동이 있어요!\n" +
-                            "이제 <b>%s팀</b>이 <b>%d:%d</b>로 리드합니다! 🚀",
-                    awayTeamName,
-                    homeTeamName,
-                    Team.getDisplayNameByCode(currLeader),
-                    awayTeamScore,
-                    homeTeamScore
-            );
+            String leadingTeamName = Team.getDisplayNameByCode(currLeader);
+
+            if (memberSupportTeamName.equals(leadingTeamName)) {
+                // 내가 응원하는 팀이 역전했을 때
+                return String.format(
+                        "[<b>%s</b> VS <b>%s</b>] 짜릿한 순간! 🎉\n" +
+                                "응원하는 <b>%s팀</b>이 드디어 역전에 성공했습니다!\n" +
+                                "현재 스코어는 <b>%d:%d</b> 🔥",
+                        awayTeamName,
+                        homeTeamName,
+                        leadingTeamName,
+                        awayTeamScore,
+                        homeTeamScore
+                );
+            } else {
+                // 상대 팀이 역전했을 때
+                return String.format(
+                        "[<b>%s</b> VS <b>%s</b>] 아쉽네요... 😥\n" +
+                                "<b>%s팀</b>이 <b>%d:%d</b>로 경기를 뒤집었습니다.",
+                        awayTeamName,
+                        homeTeamName,
+                        leadingTeamName,
+                        awayTeamScore,
+                        homeTeamScore
+                );
+            }
         }
     }
 
