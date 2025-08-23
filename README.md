@@ -1,19 +1,19 @@
 # ⚾️ Baseball AI Agent  
 <img width="256" height="256" alt="image" src="https://github.com/user-attachments/assets/9d4918fa-d793-4c3b-a8aa-0e4beed8b0b8" />
 
-> **실시간 경기 알림 + Ai 분석 리포트**  
+> **실시간 경기 알림 + AI 분석 리포트**  
 > "야구는 기록으로 말한다, 우리는 알림으로 본다."
 
 ---
 
 ## 🚀 프로젝트 소개
-Baseball Ai Agent는 **KBO 실시간 경기 이벤트**를 수집하고,  
+Baseball AI Agent는 **KBO 실시간 경기 이벤트**를 수집하고,  
 **텔레그램으로 즉시 알림**을 전달하는 서비스입니다.  
-또한 경기 종료 후에는 **Ai 기반 경기 분석 리포트**까지 자동 전송합니다.
+또한 경기 종료 후에는 **AI 기반 경기 분석 리포트**까지 자동 전송합니다.
 
 - ✅ 경기 3시간/1시간 전 우천 취소 자동 감지 및 공지  
 - ✅ 동점/역전 등 주요 이벤트 실시간 알림  
-- ✅ 경기 종료 후 1시간 뒤, Ai 분석 레포트 제공  
+- ✅ 경기 종료 후 1시간 뒤, AI 분석 레포트 제공  
 
 ---
 
@@ -33,6 +33,6 @@ Baseball Ai Agent는 **KBO 실시간 경기 이벤트**를 수집하고,
 <img width="1249" height="591" alt="image" src="https://github.com/user-attachments/assets/f4802bb8-ced4-48f4-85bb-1c21d14622ee" />
 
 
-### 🤖 Ai 경기 분석 레포트 발송 기능
+### 🤖 AI 경기 분석 레포트 발송 기능
 
 <img width="987" height="727" alt="image" src="https://github.com/user-attachments/assets/b2461a1f-a69f-403d-9bbc-56951ff8708d" />

@@ -14,7 +14,7 @@ public class PerplexityTestController {
 
     private final OpenAiChatModel chatModel;
 
-    @GetMapping("/ai/test")
+    @GetMapping("/test/ai")
     public Map<String, Object> testPerplexity(@RequestParam(value = "message", defaultValue = "Hello, Perplexity!") String message) {
         return Map.of("response", chatModel.call(message));
     }

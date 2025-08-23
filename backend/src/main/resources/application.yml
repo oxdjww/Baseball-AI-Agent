@@ -39,3 +39,10 @@ telegram:
 kma:
   api:
     key: ${KMA_API_KEY}
+
+springdoc:
+  swagger-ui:
+    path: /api-docs
+  api-docs:
+    path: /v3/api-docs
+
