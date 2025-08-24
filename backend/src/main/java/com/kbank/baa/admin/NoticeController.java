@@ -14,7 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/telegram/notice")
+@RequestMapping("/admin/telegram/notice")
 public class NoticeController {
 
     private final TelegramService telegramService;

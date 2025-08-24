@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         // 관리자, 테스트 API
-                        .requestMatchers("/admin/**", "/test/**", "/telegram/**").authenticated()
+                        .requestMatchers("/admin/**", "/test/**").authenticated()
                         // 스웨거
                         .requestMatchers(
                                 "/swagger-ui/**",
