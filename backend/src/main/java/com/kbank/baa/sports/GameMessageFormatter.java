@@ -55,7 +55,7 @@ public class GameMessageFormatter {
                 // 내가 응원하는 팀이 역전했을 때
                 return String.format(
                         "[<b>%s</b> VS <b>%s</b>] 짜릿한 순간! 🎉\n" +
-                                "응원하는 <b>%s팀</b>이 드디어 역전에 성공했습니다!\n" +
+                                "응원하는 <b>%s팀</b>이 앞서 나갑니다!\n" +
                                 "현재 스코어는 <b>%d:%d</b> 🔥",
                         awayTeamName,
                         homeTeamName,
@@ -67,7 +67,7 @@ public class GameMessageFormatter {
                 // 상대 팀이 역전했을 때
                 return String.format(
                         "[<b>%s</b> VS <b>%s</b>] 아쉽네요... 😥\n" +
-                                "<b>%s팀</b>이 <b>%d:%d</b>로 경기를 뒤집었습니다.",
+                                "<b>%s팀</b>이 <b>%d:%d</b>로 경기를 앞서 나갑니다.",
                         awayTeamName,
                         homeTeamName,
                         leadingTeamName,
