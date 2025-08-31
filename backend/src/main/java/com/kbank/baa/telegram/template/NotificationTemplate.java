@@ -9,7 +9,7 @@ public enum NotificationTemplate {
     // 공지/알림
     ANNOUNCEMENT("<b>새로운 공지사항이 있어요!</b>\n\n%s\n\n감사합니다."),
     // 단순 종료 알림(스코어 없음)
-    GAME_ENDED("금일 %s의 경기가 종료되었습니다.\n\n⚾️ 1시간 뒤, Ai 게임 분석 레포트가 전송됩니다!\n\n감사합니다."),
+    GAME_ENDED("금일 %s의 경기가 종료되었습니다.\n\n⚾️ 1시간 뒤, AI 게임 분석 레포트가 전송됩니다!\n\n감사합니다."),
     // 스코어 포함 종료 알림
     GAME_ENDED_WITH_SCORE(
             "📢 금일 %s의 경기가 종료되었습니다.\n" +
