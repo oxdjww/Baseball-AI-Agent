@@ -21,7 +21,9 @@ public class RealtimeJobScheduler {
     /**
      * 야구 경기가 실제로 일어날 수 있는 시간에만 운영 (화-일 3분마다, 13:00–22:59 사이)
      */
-    @Scheduled(cron = "0 0/3 13-22 * * TUE-SUN", zone = "Asia/Seoul")
+    // @Scheduled(cron = "0 0/3 13-22 * * TUE-SUN", zone = "Asia/Seoul")
+    // 포스트시즌 시간표 적용
+    @Scheduled(cron = "0 0/3 14-22 * * *", zone = "Asia/Seoul")
     public void runRealTimeAlert() throws Exception {
         log.info("[RealtimeJobScheduler][runRealTimeAlert] 실행 시도");
 
