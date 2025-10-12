@@ -1,7 +1,7 @@
 // GameAlertService.java
 package com.kbank.baa.batch.service;
 
-import com.kbank.baa.admin.MemberRepository;
+import com.kbank.baa.member.MemberRepository;
 import com.kbank.baa.sports.SportsApiClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

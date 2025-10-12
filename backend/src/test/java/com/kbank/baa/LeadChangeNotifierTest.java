@@ -1,6 +1,6 @@
 package com.kbank.baa;
 
-import com.kbank.baa.admin.Member;
+import com.kbank.baa.member.Member;
 import com.kbank.baa.admin.Team;
 import com.kbank.baa.batch.service.LeadChangeNotifier;
 import com.kbank.baa.sports.GameMessageFormatter;

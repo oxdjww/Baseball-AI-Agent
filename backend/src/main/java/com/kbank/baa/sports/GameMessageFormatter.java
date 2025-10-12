@@ -1,7 +1,7 @@
 package com.kbank.baa.sports;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.kbank.baa.admin.Member;
+import com.kbank.baa.member.Member;
 import com.kbank.baa.admin.Team;
 import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
 import org.springframework.stereotype.Component;

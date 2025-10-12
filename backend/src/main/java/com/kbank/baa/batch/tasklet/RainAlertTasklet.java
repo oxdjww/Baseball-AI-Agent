@@ -1,8 +1,8 @@
 // RainAlertTasklet.java
 package com.kbank.baa.batch.tasklet;
 
-import com.kbank.baa.admin.Member;
-import com.kbank.baa.admin.MemberRepository;
+import com.kbank.baa.member.Member;
+import com.kbank.baa.member.MemberRepository;
 import com.kbank.baa.admin.Team;
 import com.kbank.baa.sports.SportsApiClient;
 import com.kbank.baa.sports.dto.ScheduledGameDto;

@@ -1,7 +1,7 @@
 package com.kbank.baa.telegram;
 
-import com.kbank.baa.admin.Member;
-import com.kbank.baa.admin.MemberRepository;
+import com.kbank.baa.member.Member;
+import com.kbank.baa.member.MemberRepository;
 import com.kbank.baa.admin.Team;
 import com.kbank.baa.telegram.dto.ParseMode;
 import com.kbank.baa.telegram.dto.TelegramMessage;

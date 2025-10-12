@@ -13,6 +13,8 @@ spring:
       initialize-schema: always
     job:
       enabled: false
+    properties:
+      hibernate.jdbc.time_zone: UTC
   rest:
     connection-timeout: 3000
     read-timeout: 5000

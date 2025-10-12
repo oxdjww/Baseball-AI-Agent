@@ -1,7 +1,7 @@
 // LeadChangeNotifier.java
 package com.kbank.baa.batch.service;
 
-import com.kbank.baa.admin.Member;
+import com.kbank.baa.member.Member;
 import com.kbank.baa.sports.GameMessageFormatter;
 import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
 import com.kbank.baa.sports.dto.ScheduledGameDto;

@@ -1,7 +1,7 @@
 package com.kbank.baa.test;
 
-import com.kbank.baa.admin.Member;
-import com.kbank.baa.admin.MemberRepository;
+import com.kbank.baa.member.Member;
+import com.kbank.baa.member.MemberRepository;
 import com.kbank.baa.telegram.TelegramService;
 import com.kbank.baa.telegram.template.NotificationTemplate;
 import lombok.RequiredArgsConstructor;

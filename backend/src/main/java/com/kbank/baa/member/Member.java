@@ -1,6 +1,8 @@
-package com.kbank.baa.admin;
+package com.kbank.baa.member;
 
 
+import com.kbank.baa.admin.Team;
+import com.kbank.baa.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Member {
+public class Member extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
