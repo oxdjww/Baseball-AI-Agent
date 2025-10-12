@@ -84,4 +84,14 @@ public class TelegramService {
     public void sendMessageToAllMembers_Legacy(String message) {
         sendAnnouncementToAllMembers(message);
     }
+
+    /** 관리자/운영용: 접두어 없이 그대로 보냄 */
+    public void sendPlainMessage(String chatId, String rawText) {
+        TelegramMessage msg = TelegramMessage.builder()
+                .chatId(chatId)
+                .text(rawText)
+                .parseMode(ParseMode.HTML)
+                .build();
+        telegramClient.sendMessage(msg);
+    }
 }

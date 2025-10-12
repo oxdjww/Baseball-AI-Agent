@@ -37,6 +37,7 @@ spring:
 
 telegram:
   bot-token: ${TELEGRAM_BOT_TOKEN}
+  admin-id: ${TELEGRAM_ADMIN_ID}
 
 kma:
   api:
