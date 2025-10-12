@@ -9,8 +9,8 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 
 @Component
@@ -39,17 +39,15 @@ public class RealtimeJobScheduler {
         log.info("[RealtimeJobScheduler][runRealTimeAlert] 실행 요청 완료");
     }
 
-    // 매일 00:00 KST에 실행
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
     public void purgeMembersWithoutTelegram() {
-        final LocalDateTime before = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusHours(24);
+        // UTC 절대시각 기준
+        final Instant before = Instant.now().minus(Duration.ofHours(24));
         try {
             int affected = memberRepository.deleteOldPending(before);
-
-            log.warn("[RealtimeJobScheduler][purgeMembersWithoutTelegram] 하드 삭제 완료 rows={}", affected);
+            log.warn("[purgeMembersWithoutTelegram] 하드 삭제 rows={}", affected);
         } catch (Exception e) {
-            log.error("[RealtimeJobScheduler][purgeMembersWithoutTelegram] 실패: {}", e.getMessage(), e);
+            log.error("[purgeMembersWithoutTelegram] 실패: {}", e.getMessage(), e);
         }
     }
-
 }

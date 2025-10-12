@@ -4,17 +4,21 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.Instant;
 
 @MappedSuperclass
-@EntityListeners(org.springframework.data.jpa.domain.support.AuditingEntityListener.class)
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 public abstract class BaseEntity {
-
-    @org.springframework.data.annotation.CreatedDate
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private java.time.Instant createdAt;
+    private Instant createdAt;
 
-    @org.springframework.data.annotation.LastModifiedDate
+    @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
-    private java.time.Instant updatedAt;
+    private Instant updatedAt;
 }
