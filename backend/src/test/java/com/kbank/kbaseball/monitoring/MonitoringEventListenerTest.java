@@ -42,6 +42,8 @@ class MonitoringEventListenerTest {
         assertThat(msgCaptor.getValue()).contains("[🚨 SYSTEM CRITICAL]");
         assertThat(msgCaptor.getValue()).contains("FeatureToggleService.toggle");
         assertThat(msgCaptor.getValue()).contains("Unknown feature key: FAKE");
+        assertThat(msgCaptor.getValue()).contains("📋 인자:");
+        assertThat(msgCaptor.getValue()).contains("FAKE");
     }
 
     @Test
@@ -55,5 +57,39 @@ class MonitoringEventListenerTest {
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         verify(telegramService).sendPlainMessage(eq(ADMIN_ID), captor.capture());
         assertThat(captor.getValue()).doesNotContain("👤 유저:");
+    }
+
+    @Test
+    void contextData_비어있으면_인자정보_미포함() {
+        ReflectionTestUtils.setField(listener, "telegramAdminId", ADMIN_ID);
+        MonitoringErrorEvent event = new MonitoringErrorEvent(
+                this, "SomeService.method", "err", "stack", Map.of(), null);
+
+        listener.handleMonitoringError(event);
+
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        verify(telegramService).sendPlainMessage(eq(ADMIN_ID), captor.capture());
+        assertThat(captor.getValue()).doesNotContain("📋 인자:");
+    }
+
+    @Test
+    void HTML_특수문자_이스케이프() {
+        ReflectionTestUtils.setField(listener, "telegramAdminId", ADMIN_ID);
+        MonitoringErrorEvent event = new MonitoringErrorEvent(
+                this,
+                "SomeService.method",
+                "Error: value <null> is not allowed",
+                "at com.example.Foo.bar<T>(Foo.java:10)",
+                Map.of(),
+                null
+        );
+
+        listener.handleMonitoringError(event);
+
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        verify(telegramService).sendPlainMessage(eq(ADMIN_ID), captor.capture());
+        assertThat(captor.getValue()).contains("&lt;null&gt;");
+        assertThat(captor.getValue()).contains("&lt;T&gt;");
+        assertThat(captor.getValue()).doesNotContain("<null>");
     }
 }
