@@ -37,15 +37,20 @@ public class RealtimeJobScheduler {
     // @Scheduled(cron = "0 0/3 13-22 * * TUE-SUN", zone = "Asia/Seoul")
     // 포스트시즌 시간표 적용
     @Scheduled(cron = "0 0/3 14-22 * * *", zone = "Asia/Seoul")
-    public void runRealTimeAlert() throws Exception {
+    public void runRealTimeAlert() {
         log.info("[RealtimeJobScheduler][runRealTimeAlert] 실행 시도");
-
-        jobLauncher.run(realTimeAlertJob,
-                new JobParametersBuilder()
-                        .addLong("time", System.currentTimeMillis())
-                        .addString("run.id", UUID.randomUUID().toString())
-                        .toJobParameters());
-        log.info("[RealtimeJobScheduler][runRealTimeAlert] 실행 요청 완료");
+        try {
+            jobLauncher.run(realTimeAlertJob,
+                    new JobParametersBuilder()
+                            .addLong("time", System.currentTimeMillis())
+                            .addString("run.id", UUID.randomUUID().toString())
+                            .toJobParameters());
+            log.info("[RealtimeJobScheduler][runRealTimeAlert] 실행 요청 완료");
+        } catch (Exception e) {
+            log.error("[RealtimeJobScheduler] 실시간 알림 배치 실패: {}", e.getMessage(), e);
+            telegramService.sendPlainMessage(telegramAdminId,
+                    "<b>[배치오류] 실시간 역전 알림 실패</b>\n사유: " + e.getMessage());
+        }
     }
 
     /**

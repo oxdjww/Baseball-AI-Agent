@@ -65,6 +65,9 @@ public class NaverSportsClient {
 
 
     // 게임ID를 기반으로 경기 정보 단건 조회
+    @Retryable(retryFor = RestClientException.class,
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 2000))
     public RealtimeGameInfoDto fetchGameInfo(String gameId) {
         String url = "https://api-gw.sports.naver.com/schedule/games/" + gameId;
         ResponseEntity<JsonNode> resp = restTemplate.getForEntity(url, JsonNode.class);
@@ -91,6 +94,9 @@ public class NaverSportsClient {
     }
 
     // 게임 ID를 기반으로 경기의 취소 여부만 조회
+    @Retryable(retryFor = RestClientException.class,
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 2000))
     public boolean fetchCancelInfoFromGameInfo(String gameId) {
         String url = "https://api-gw.sports.naver.com/schedule/games/" + gameId;
         ResponseEntity<JsonNode> resp = restTemplate.getForEntity(url, JsonNode.class);
@@ -105,5 +111,19 @@ public class NaverSportsClient {
     @Recover
     public List<ScheduledGameDto> recover(RestClientException ex, LocalDate from, LocalDate to) {
         return List.of();
+    }
+
+    @SuppressWarnings("unused")
+    @Recover
+    public RealtimeGameInfoDto recoverGameInfo(RestClientException ex, String gameId) {
+        log.error("[NaverSportsClient] fetchGameInfo 재시도 소진, gameId={}", gameId, ex);
+        return null;
+    }
+
+    @SuppressWarnings("unused")
+    @Recover
+    public boolean recoverCancelInfo(RestClientException ex, String gameId) {
+        log.error("[NaverSportsClient] fetchCancelInfoFromGameInfo 재시도 소진, gameId={}", gameId, ex);
+        return false;
     }
 }
