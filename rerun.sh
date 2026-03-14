@@ -67,19 +67,20 @@ JAR=$(ls "$BACKEND_DIR"/build/libs/kbaseball-*.jar | grep -v plain | head -1)
 [ -f "$JAR" ] || err_exit "JAR 파일을 찾을 수 없습니다: $BACKEND_DIR/build/libs/"
 
 PID_FILE="$SCRIPT_DIR/app.pid"
+# logback-spring.xml의 FILE appender가 backend/logs/kbaseball.log를 직접 관리
+# stdout까지 같은 파일로 리디렉션하면 모든 로그가 2중 기록되므로 /dev/null로 버림
 LOG_FILE="$SCRIPT_DIR/backend/logs/kbaseball.log"
-mkdir -p "$(dirname "$LOG_FILE")"
 
 info "앱 시작 (nohup) — 터미널 닫아도 유지됨"
 info "JAR: $JAR"
-info "로그: $LOG_FILE"
+info "로그: $LOG_FILE (logback FILE appender)"
 info "PID 파일: $PID_FILE"
 echo ""
 
 nohup java -jar "$JAR" \
   --spring.data.redis.host=localhost \
   --spring.data.redis.port=6379 \
-  >> "$LOG_FILE" 2>&1 &
+  > /dev/null 2>&1 &
 
 echo $! > "$PID_FILE"
 info "서버 기동 완료 (PID: $(cat "$PID_FILE"))"
