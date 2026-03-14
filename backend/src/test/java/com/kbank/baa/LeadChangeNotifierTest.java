@@ -13,7 +13,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
+import java.time.Duration;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -26,6 +29,10 @@ public class LeadChangeNotifierTest {
     GameMessageFormatter formatter;
     @Mock
     TelegramService telegram;
+    @Mock
+    StringRedisTemplate redis;
+    @Mock
+    ValueOperations<String, String> valueOps;
     @InjectMocks
     LeadChangeNotifier notifier;
 
@@ -56,7 +63,11 @@ public class LeadChangeNotifierTest {
                 .telegramId("t2")
                 .build();
 
-        // 3) 메시지 포맷터가 호출될 때, 멤버별로 구분된 메시지를 리턴하도록 스텁
+        // 3) Redis 스텁: getAndSet → null (첫 호출, 이전 리더 없음)
+        when(redis.opsForValue()).thenReturn(valueOps);
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn(null);
+
+        // 4) 메시지 포맷터가 호출될 때, 멤버별로 구분된 메시지를 리턴하도록 스텁
         when(formatter.formatLeadChange(eq(homeFan), any(), anyString(), anyString()))
                 .thenReturn("[홈팀 역전] Alice 메시지");
         when(formatter.formatLeadChange(eq(awayFan), any(), anyString(), anyString()))

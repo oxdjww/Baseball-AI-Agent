@@ -11,24 +11,26 @@ import com.kbank.baa.notification.telegram.TelegramService;
 import com.kbank.baa.template.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class GameProcessor {
+    private static final String GAME_ENDED_KEY_PREFIX = "game:ended:";
+
     private final NaverSportsClient apiClient;
     private final LeadChangeNotifier leadNotifier;
-    private final Set<String> gameEndChecker = new HashSet<>();
+    private final StringRedisTemplate redis;
     private final TaskScheduler taskScheduler;
     private final GameAnalysisTasklet gameAnalysisTasklet;
     private final TelegramService telegramService;
@@ -66,10 +68,10 @@ public class GameProcessor {
                     info.getHomeTeamCode());
 
             if (("ENDED".equals(info.getStatusCode()) || "RESULT".equals(info.getStatusCode()))
-                    && !gameEndChecker.contains(info.getGameId())) {
+                    && Boolean.TRUE.equals(redis.opsForValue().setIfAbsent(
+                            GAME_ENDED_KEY_PREFIX + info.getGameId(), "1", Duration.ofHours(24)))) {
 
                 log.info("[GameProcessor][process] {} game ended", info.getGameId());
-                gameEndChecker.add(info.getGameId());
 
                 String awayTeamCode = info.getAwayTeamCode();
                 String homeTeamCode = info.getHomeTeamCode();

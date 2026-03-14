@@ -8,36 +8,31 @@ import com.kbank.baa.external.naver.dto.ScheduledGameDto;
 import com.kbank.baa.notification.telegram.TelegramService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class LeadChangeNotifier {
+    private static final String GAME_LEADER_KEY_PREFIX = "game:leader:";
+
     private final GameMessageFormatter formatter;
     private final TelegramService telegram;
-    private final Map<String, String> leaderMap = new ConcurrentHashMap<>();
+    private final StringRedisTemplate redis;
 
     public void notify(ScheduledGameDto schedule, List<Member> members, RealtimeGameInfoDto info) {
         String gameId = schedule.getGameId();
         String currLeader = SupportUtils.calculateLeader(info);
 
-        // AtomicReference에 이전 리더를 캡처
-        AtomicReference<String> prevRef = new AtomicReference<>("NONE");
-
-        // compute로 이전 값(oldVal)과 새로운 값(currLeader)을 한 번에 처리
-        leaderMap.compute(gameId, (id, oldVal) -> {
-            String previous = (oldVal == null ? "NONE" : oldVal);
-            prevRef.set(previous);
-            return currLeader;  // 맵에는 무조건 새로운 리더를 저장
-        });
-
-        String prevLeader = prevRef.get();
+        // GETSET: 이전 리더 읽기 + 새 리더 쓰기를 원자적으로 처리
+        String leaderKey = GAME_LEADER_KEY_PREFIX + gameId;
+        String rawPrev = redis.opsForValue().getAndSet(leaderKey, currLeader);
+        redis.expire(leaderKey, Duration.ofHours(24)); // 하루 지난 키 자동 정리
+        String prevLeader = (rawPrev == null) ? "NONE" : rawPrev;
         log.info("[LeadChangeNotifier][notify] 리더 변경 체크 → gameId={}, {} → {}",
                 gameId, prevLeader, currLeader);
 
