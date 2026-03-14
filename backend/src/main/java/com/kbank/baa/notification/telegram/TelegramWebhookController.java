@@ -1,6 +1,6 @@
 package com.kbank.baa.notification.telegram;
 
-import com.kbank.baa.auth.TelegramLinkService;
+import com.kbank.baa.notification.telegram.TelegramWebhookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +16,7 @@ import java.util.Map;
 @Slf4j
 public class TelegramWebhookController {
 
-    private final TelegramLinkService telegramLinkService;
+    private final TelegramWebhookService telegramWebhookService;
 
     @PostMapping("/webhook")
     public void onUpdate(@RequestBody Map<String, Object> update) {
@@ -32,11 +32,6 @@ public class TelegramWebhookController {
         Long telegramUserId = ((Number) from.get("id")).longValue();
         Long chatId = ((Number) chat.get("id")).longValue();
 
-        if (text.startsWith("/start ")) {
-            telegramLinkService.linkAccount(text.substring(7).trim(), telegramUserId, chatId);
-            return;
-        }
-
-        telegramLinkService.sendWelcomeGuide(chatId);
+        telegramWebhookService.handle(text, telegramUserId, chatId);
     }
 }

@@ -2,8 +2,6 @@ package com.kbank.baa.auth;
 
 import com.kbank.baa.member.Member;
 import com.kbank.baa.member.MemberService;
-import com.kbank.baa.notification.telegram.TelegramService;
-import com.kbank.baa.template.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -25,7 +23,6 @@ public class TelegramLinkService {
 
     private final StringRedisTemplate redis;
     private final MemberService memberService;
-    private final TelegramService telegramService;
 
     public String generateLinkUrl(Long memberId) {
         String token = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
@@ -34,15 +31,14 @@ public class TelegramLinkService {
     }
 
     @Transactional
-    public void linkAccount(String token, Long telegramUserId, Long chatId) {
+    public LinkResult linkAccount(String token, Long telegramUserId) {
         String key = REDIS_KEY_PREFIX + token;
         String memberIdStr = redis.opsForValue().get(key);
 
         log.info("[TelegramLinkService][linkAccount] token={} -> memberId={}", token, memberIdStr);
 
         if (memberIdStr == null) {
-            telegramService.sendTemplateMessage(String.valueOf(chatId), "회원", NotificationTemplate.TOKEN_EXPIRED);
-            return;
+            return new LinkResult.TokenExpired();
         }
 
         Long memberId = Long.valueOf(memberIdStr);
@@ -50,8 +46,7 @@ public class TelegramLinkService {
         try {
             member = memberService.findByIdOrThrow(memberId);
         } catch (IllegalArgumentException e) {
-            telegramService.sendTemplateMessage(String.valueOf(chatId), "회원", NotificationTemplate.ACCOUNT_NOT_FOUND);
-            return;
+            return new LinkResult.MemberNotFound();
         }
 
         memberService.linkTelegramId(memberId, String.valueOf(telegramUserId));
@@ -65,15 +60,6 @@ public class TelegramLinkService {
             }
         });
 
-        telegramService.sendTemplateMessage(String.valueOf(chatId), member.getName(), NotificationTemplate.LINK_SUCCESS);
-    }
-
-    public void sendWelcomeGuide(Long chatId) {
-        telegramService.sendTemplateMessage(
-                String.valueOf(chatId),
-                "회원",
-                NotificationTemplate.WELCOME_GUIDE,
-                "https://t.me/lIllllIIllllI"
-        );
+        return new LinkResult.Linked(member.getName());
     }
 }
