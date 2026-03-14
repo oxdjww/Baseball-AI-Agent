@@ -1,0 +1,34 @@
+admin:
+  password: test
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+  ai:
+    openai:
+      api-key: test-key
+  redis:
+    data:
+      redis:
+        host: localhost
+        port: 6379
+
+telegram:
+  bot-token: test-token
+  admin-id: "000000000"
+
+kma:
+  api:
+    key: test-key
