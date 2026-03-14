@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="baa"/>
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="kbaseball"/>
 
     <!-- 콘솔 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -31,5 +31,5 @@
     <!-- 외부 라이브러리 노이즈 억제 -->
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.hibernate" level="WARN"/>
-    <logger name="com.kbank.baa" level="INFO"/>
+    <logger name="com.kbank.kbaseball" level="INFO"/>
 </configuration>

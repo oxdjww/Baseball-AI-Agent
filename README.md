@@ -1,4 +1,4 @@
-# ⚾️ Baseball AI Agent  
+# ⚾️ Kbaseball  
 <img width="256" height="256" alt="image" src="https://github.com/user-attachments/assets/9d4918fa-d793-4c3b-a8aa-0e4beed8b0b8" />
 
 > **실시간 경기 알림 + AI 분석 리포트**  
@@ -7,7 +7,7 @@
 ---
 
 ## 🚀 프로젝트 소개
-Baseball AI Agent는 **KBO 실시간 경기 이벤트**를 수집하고,  
+Kbaseball는 **KBO 실시간 경기 이벤트**를 수집하고,  
 **텔레그램으로 즉시 알림**을 전달하는 서비스입니다.  
 또한 경기 종료 후에는 **AI 기반 경기 분석 리포트**까지 자동 전송합니다.
 

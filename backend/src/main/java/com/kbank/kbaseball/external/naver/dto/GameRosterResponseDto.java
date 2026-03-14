@@ -1,0 +1,11 @@
+package com.kbank.kbaseball.external.naver.dto;
+
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class GameRosterResponseDto {
+    private List<GamePlayersResponseDto.Player> homePlayers;
+    private List<GamePlayersResponseDto.Player> awayPlayers;
+}

@@ -63,6 +63,24 @@ cd "$BACKEND_DIR"
 info "빌드 완료"
 
 # ── 5. 기동 ──────────────────────────────────────────────────────────────────
-info "앱 시작 (bootRun) — Ctrl+C 로 종료"
+JAR=$(ls "$BACKEND_DIR"/build/libs/kbaseball-*.jar | grep -v plain | head -1)
+[ -f "$JAR" ] || err_exit "JAR 파일을 찾을 수 없습니다: $BACKEND_DIR/build/libs/"
+
+PID_FILE="$SCRIPT_DIR/app.pid"
+LOG_FILE="$SCRIPT_DIR/backend/logs/kbaseball.log"
+mkdir -p "$(dirname "$LOG_FILE")"
+
+info "앱 시작 (nohup) — 터미널 닫아도 유지됨"
+info "JAR: $JAR"
+info "로그: $LOG_FILE"
+info "PID 파일: $PID_FILE"
 echo ""
-./gradlew bootRun
+
+nohup java -jar "$JAR" \
+  --spring.data.redis.host=localhost \
+  --spring.data.redis.port=6379 \
+  >> "$LOG_FILE" 2>&1 &
+
+echo $! > "$PID_FILE"
+info "서버 기동 완료 (PID: $(cat "$PID_FILE"))"
+info "종료하려면: kill \$(cat $PID_FILE)"

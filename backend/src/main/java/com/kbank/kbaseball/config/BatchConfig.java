@@ -1,0 +1,52 @@
+package com.kbank.kbaseball.config;
+
+import com.kbank.kbaseball.batch.tasklet.RainAlertTasklet;
+import com.kbank.kbaseball.batch.tasklet.RealTimeAlertTasklet;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
+
+@EnableBatchProcessing
+@Configuration
+public class BatchConfig {
+
+    @Bean
+    public Step rainAlertStep(JobRepository jobRepository,
+                              PlatformTransactionManager tm,
+                              RainAlertTasklet rainAlertTasklet) {
+        return new StepBuilder("rainAlertStep", jobRepository)
+                .tasklet(rainAlertTasklet, tm)
+                .build();
+    }
+
+    @Bean
+    public Job rainAlertJob(JobRepository jobRepository,
+                            Step rainAlertStep) {
+        return new JobBuilder("rainAlertJob", jobRepository)
+                .start(rainAlertStep)
+                .build();
+    }
+
+    @Bean
+    public Step realTimeAlertStep(JobRepository jobRepository,
+                                  PlatformTransactionManager tm,
+                                  RealTimeAlertTasklet realTimeAlertTasklet) {
+        return new StepBuilder("realTimeAlertStep", jobRepository)
+                .tasklet(realTimeAlertTasklet, tm)
+                .build();
+    }
+
+    @Bean
+    public Job realTimeAlertJob(JobRepository jobRepository,
+                                Step realTimeAlertStep) {
+        return new JobBuilder("realTimeAlertJob", jobRepository)
+                .start(realTimeAlertStep)
+                .build();
+    }
+}
