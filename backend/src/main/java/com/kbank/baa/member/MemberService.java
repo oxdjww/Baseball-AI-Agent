@@ -1,5 +1,6 @@
 package com.kbank.baa.member;
 
+import com.kbank.baa.domain.team.Team;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,14 @@ public class MemberService {
         Member m = findByIdOrThrow(memberId);
         m.setTelegramId(telegramId);
         memberRepository.save(m);
+    }
+
+    public List<Member> findByNotifyGameAnalysisTrue() {
+        return memberRepository.findByNotifyGameAnalysisTrue();
+    }
+
+    public List<Member> findBySupportTeamAndNotifyRainAlertTrue(Team team) {
+        return memberRepository.findBySupportTeamAndNotifyRainAlertTrue(team);
     }
 
     @Transactional

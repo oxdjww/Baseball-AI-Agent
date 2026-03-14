@@ -1,8 +1,7 @@
-// RainAlertTasklet.java
 package com.kbank.baa.batch.tasklet;
 
 import com.kbank.baa.member.Member;
-import com.kbank.baa.member.MemberRepository;
+import com.kbank.baa.member.MemberService;
 import com.kbank.baa.domain.team.Team;
 import com.kbank.baa.external.naver.NaverSportsClient;
 import com.kbank.baa.external.naver.dto.ScheduledGameDto;
@@ -25,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RainAlertTasklet implements Tasklet {
     private final KmaWeatherClient rainfallService;
-    private final MemberRepository memberRepo;
+    private final MemberService memberService;
     private final TelegramService telegramService;
     private final NaverSportsClient sportsApiClient;
 
@@ -54,8 +53,8 @@ public class RainAlertTasklet implements Tasklet {
                 game.getGameId(), hoursBefore, rain, thresholdMm);
 
         // 3) 홈/어웨이팀 모두 알림 켠 멤버 조회
-        List<Member> homeMembers = memberRepo.findBySupportTeamAndNotifyRainAlertTrue(homeTeam);
-        List<Member> awayMembers = memberRepo.findBySupportTeamAndNotifyRainAlertTrue(awayTeam);
+        List<Member> homeMembers = memberService.findBySupportTeamAndNotifyRainAlertTrue(homeTeam);
+        List<Member> awayMembers = memberService.findBySupportTeamAndNotifyRainAlertTrue(awayTeam);
         log.info("[RainAlertTasklet][executeForGame]→ {} 멤버 (홈: {}) + {} 멤버 (어웨이: {})",
                 homeMembers.size(), homeTeam.getDisplayName(),
                 awayMembers.size(), awayTeam.getDisplayName());
@@ -64,7 +63,6 @@ public class RainAlertTasklet implements Tasklet {
         String vs = String.format("[%s vs %s]", awayTeam.getDisplayName(), homeTeam.getDisplayName());
         String text;
 
-        // 고척(실내)경기장 이거나, 기준치 미달일 경우
         if (game.getStadium().equals("고척")) {
             log.info("[RainAlertTasklet][executeForGame] 고척 경기장(실내) 관전 권장 메시지 생성");
             text = String.format(
@@ -72,23 +70,19 @@ public class RainAlertTasklet implements Tasklet {
                     vs
             );
         } else if (rain < thresholdMm) {
-            // 강수량이 우천 취소 기준치 미달
             log.info("[RainAlertTasklet][executeForGame] rain < thresholdMm ({} < {}), 관전 권장 메시지 생성", rain, thresholdMm);
             text = String.format(
                     " %s %d시간 전 강수량 %.1fmm\n비 걱정 없어요! 즐겁게 관전하세요! ⚾",
                     vs, hoursBefore, rain
             );
         } else {
-            // 강수량이 우천 취소 기준치에 해당될 경우
             if (sportsApiClient.fetchCancelInfoFromGameInfo(game.getGameId())) {
-                // 강수량도 기준치 이상이고, 실제로 게임도 취소된 경우
                 log.info("[RainAlertTasklet][executeForGame] rain >= thresholdMm ({} ≥ {}), 우천취소 확정 메시지 생성", rain, thresholdMm);
                 text = String.format(
                         "<b>%s %d시간 전 강수량 %.1fmm\n경기가 우천취소 되었어요!</b> ☔️",
                         vs, hoursBefore, rain
                 );
             } else {
-                // 강수량은 기준치 이상이나, 실제로 게임은 아직 취소되지 않은 경우
                 log.info("[RainAlertTasklet][executeForGame] rain >= thresholdMm ({} ≥ {}), 우천취소 가능성 메시지 생성", rain, thresholdMm);
                 text = String.format(
                         "<b>%s %d시간 전 강수량 %.1fmm\n우천취소 가능성 있어요!</b> ☔️",
@@ -101,8 +95,6 @@ public class RainAlertTasklet implements Tasklet {
         // 5) 홈팀 멤버에게 전송
         homeMembers.forEach(m -> {
             try {
-//                telegram.sendMessage(m.getTelegramId(), text);
-                // 20250729 TEST
                 telegramService.sendPersonalMessage(m.getTelegramId(), m.getName(), text);
                 log.info("[RainAlertTasklet][executeForGame] → 우천 알림(홈) sent to {} ({})", m.getName(), m.getTelegramId());
             } catch (Exception e) {
@@ -120,5 +112,4 @@ public class RainAlertTasklet implements Tasklet {
             }
         });
     }
-
 }
