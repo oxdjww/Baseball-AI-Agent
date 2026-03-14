@@ -17,15 +17,21 @@ public class AdminMemberController {
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("members", memberService.findAllSorted());
-        return "member/list";
+        var members = memberService.findAllSorted();
+        long linkedCount = members.stream().filter(m -> m.getTelegramId() != null).count();
+        model.addAttribute("members", members);
+        model.addAttribute("totalCount", members.size());
+        model.addAttribute("linkedCount", linkedCount);
+        model.addAttribute("unlinkedCount", members.size() - linkedCount);
+        return "admin/member";
     }
 
     @GetMapping("/new")
     public String newForm(Model model) {
         model.addAttribute("member", new Member());
         model.addAttribute("teams", Team.values());
-        return "member/form";
+        model.addAttribute("formAction", "/admin/members");
+        return "admin/member_form";
     }
 
     @PostMapping
@@ -38,7 +44,8 @@ public class AdminMemberController {
     public String editForm(@PathVariable Long id, Model model) {
         model.addAttribute("member", memberService.findByIdOrThrow(id));
         model.addAttribute("teams", Team.values());
-        return "member/form";
+        model.addAttribute("formAction", "/admin/members/" + id + "/edit");
+        return "admin/member_form";
     }
 
     @PostMapping("/{id}/edit")
