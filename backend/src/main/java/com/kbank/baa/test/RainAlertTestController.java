@@ -1,8 +1,8 @@
 package com.kbank.baa.test;
 
 import com.kbank.baa.batch.tasklet.RainAlertTasklet;
-import com.kbank.baa.sports.SportsApiClient;
-import com.kbank.baa.sports.dto.ScheduledGameDto;
+import com.kbank.baa.external.naver.NaverSportsClient;
+import com.kbank.baa.external.naver.dto.ScheduledGameDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/test")
 public class RainAlertTestController {
 
-    private final SportsApiClient apiClient;
+    private final NaverSportsClient apiClient;
     private final RainAlertTasklet rainTasklet;
 
     /**

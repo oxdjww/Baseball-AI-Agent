@@ -1,5 +1,6 @@
 package com.kbank.baa.admin;
 
+import com.kbank.baa.domain.team.Team;
 import com.kbank.baa.member.Member;
 import com.kbank.baa.member.MemberRepository;
 import lombok.RequiredArgsConstructor;

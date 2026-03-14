@@ -1,7 +1,7 @@
 package com.kbank.baa.member;
 
 
-import com.kbank.baa.admin.Team;
+import com.kbank.baa.domain.team.Team;
 import com.kbank.baa.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,11 +1,11 @@
 // LeadChangeNotifier.java
-package com.kbank.baa.batch.service;
+package com.kbank.baa.game.alert;
 
 import com.kbank.baa.member.Member;
-import com.kbank.baa.sports.GameMessageFormatter;
-import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
-import com.kbank.baa.sports.dto.ScheduledGameDto;
-import com.kbank.baa.telegram.TelegramService;
+import com.kbank.baa.game.message.GameMessageFormatter;
+import com.kbank.baa.external.naver.dto.RealtimeGameInfoDto;
+import com.kbank.baa.external.naver.dto.ScheduledGameDto;
+import com.kbank.baa.notification.telegram.TelegramService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

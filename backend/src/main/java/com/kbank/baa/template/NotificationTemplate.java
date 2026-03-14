@@ -1,4 +1,4 @@
-package com.kbank.baa.telegram.template;
+package com.kbank.baa.template;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

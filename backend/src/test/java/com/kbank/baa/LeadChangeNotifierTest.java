@@ -1,12 +1,12 @@
 package com.kbank.baa;
 
 import com.kbank.baa.member.Member;
-import com.kbank.baa.admin.Team;
-import com.kbank.baa.batch.service.LeadChangeNotifier;
-import com.kbank.baa.sports.GameMessageFormatter;
-import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
-import com.kbank.baa.sports.dto.ScheduledGameDto;
-import com.kbank.baa.telegram.TelegramService;
+import com.kbank.baa.domain.team.Team;
+import com.kbank.baa.game.alert.LeadChangeNotifier;
+import com.kbank.baa.game.message.GameMessageFormatter;
+import com.kbank.baa.external.naver.dto.RealtimeGameInfoDto;
+import com.kbank.baa.external.naver.dto.ScheduledGameDto;
+import com.kbank.baa.notification.telegram.TelegramService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,7 +65,7 @@ public class LeadChangeNotifierTest {
 
     @Test
     void notify_whenLeaderChanges_sendsToAllSupporters() {
-        // — “역전” 상태로 간주하기 위해 homeScore > awayScore 로 리더 결정
+        // — "역전" 상태로 간주하기 위해 homeScore > awayScore 로 리더 결정
         RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
                 .statusCode("STARTED")
                 .homeTeamCode("LG")

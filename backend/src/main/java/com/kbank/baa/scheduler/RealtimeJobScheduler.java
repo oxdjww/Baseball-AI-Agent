@@ -1,7 +1,7 @@
 package com.kbank.baa.scheduler;
 
 import com.kbank.baa.member.MemberRepository;
-import com.kbank.baa.telegram.TelegramService;
+import com.kbank.baa.notification.telegram.TelegramService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;

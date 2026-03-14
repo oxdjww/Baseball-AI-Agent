@@ -1,6 +1,6 @@
 package com.kbank.baa.admin;
 
-import com.kbank.baa.telegram.TelegramService;
+import com.kbank.baa.notification.telegram.TelegramService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

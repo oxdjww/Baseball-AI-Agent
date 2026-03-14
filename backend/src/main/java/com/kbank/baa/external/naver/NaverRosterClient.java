@@ -1,8 +1,8 @@
-package com.kbank.baa.sports;
+package com.kbank.baa.external.naver;
 
-import com.kbank.baa.sports.dto.GamePlayersResponseDto;
-import com.kbank.baa.sports.dto.GamePlayersResponseDto.Player;
-import com.kbank.baa.sports.dto.GameRosterResponseDto;
+import com.kbank.baa.external.naver.dto.GamePlayersResponseDto;
+import com.kbank.baa.external.naver.dto.GamePlayersResponseDto.Player;
+import com.kbank.baa.external.naver.dto.GameRosterResponseDto;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -12,14 +12,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class GameRosterClient {
+public class NaverRosterClient {
     private static final String URL_TEMPLATE =
             "https://api-gw.sports.naver.com/poll/bestPlayer/kbo/{gameId}/status";
 
     private final RestTemplate restTemplate;
 
     // RestTemplateBuilder 로 RestTemplate 빈을 생성
-    public GameRosterClient(RestTemplateBuilder builder) {
+    public NaverRosterClient(RestTemplateBuilder builder) {
         this.restTemplate = builder.build();
     }
 

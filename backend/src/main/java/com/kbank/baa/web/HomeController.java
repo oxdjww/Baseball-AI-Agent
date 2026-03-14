@@ -2,7 +2,7 @@ package com.kbank.baa.web;
 
 import com.kbank.baa.member.Member;
 import com.kbank.baa.member.MemberRepository;
-import com.kbank.baa.admin.Team;
+import com.kbank.baa.domain.team.Team;
 import jakarta.servlet.http.HttpSession;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 // SignupForm.java
 package com.kbank.baa.web;
 
-import com.kbank.baa.admin.Team;
+import com.kbank.baa.domain.team.Team;
 import lombok.Data;
 
 @Data

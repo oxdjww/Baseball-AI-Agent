@@ -1,5 +1,5 @@
-// com/kbank/baa/sports/ScheduledGame.java
-package com.kbank.baa.sports.dto;
+// com/kbank/baa/external/naver/dto/ScheduledGameDto.java
+package com.kbank.baa.external.naver.dto;
 
 import lombok.Builder;
 import lombok.Data;

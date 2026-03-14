@@ -1,4 +1,4 @@
-package com.kbank.baa.sports.dto;
+package com.kbank.baa.external.naver.dto;
 
 import lombok.Data;
 

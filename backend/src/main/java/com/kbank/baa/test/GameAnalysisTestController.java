@@ -1,9 +1,9 @@
 package com.kbank.baa.test;
 
 import com.kbank.baa.batch.tasklet.GameAnalysisTasklet;
-import com.kbank.baa.sports.SportsApiClient;
-import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
-import com.kbank.baa.sports.dto.ScheduledGameDto;
+import com.kbank.baa.external.naver.NaverSportsClient;
+import com.kbank.baa.external.naver.dto.RealtimeGameInfoDto;
+import com.kbank.baa.external.naver.dto.ScheduledGameDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter;
 public class GameAnalysisTestController {
 
     private final GameAnalysisTasklet gameAnalysisTasklet;
-    private final SportsApiClient sportsApiClient;
+    private final NaverSportsClient sportsApiClient;
 
     /**
      * 예시 호출:

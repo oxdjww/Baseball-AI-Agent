@@ -1,11 +1,11 @@
-package com.kbank.baa.telegram;
+package com.kbank.baa.notification.telegram;
 
 import com.kbank.baa.member.Member;
 import com.kbank.baa.member.MemberRepository;
-import com.kbank.baa.admin.Team;
-import com.kbank.baa.telegram.dto.ParseMode;
-import com.kbank.baa.telegram.dto.TelegramMessage;
-import com.kbank.baa.telegram.template.NotificationTemplate;
+import com.kbank.baa.domain.team.Team;
+import com.kbank.baa.notification.telegram.dto.ParseMode;
+import com.kbank.baa.notification.telegram.dto.TelegramMessage;
+import com.kbank.baa.template.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class TelegramService {
     private static final String NAME_PREFIX_PATTERN = "%s님, %s"; // 공통 개인화 패턴
 
     private final MemberRepository memberRepository;
-    private final TelegramClient telegramClient;
+    private final TelegramNotificationClient telegramClient;
 
     /**
      * 1) 단건 전송(개인화 포함)

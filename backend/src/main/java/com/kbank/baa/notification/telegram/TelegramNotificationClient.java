@@ -1,6 +1,6 @@
-package com.kbank.baa.telegram;
+package com.kbank.baa.notification.telegram;
 
-import com.kbank.baa.telegram.dto.TelegramMessage;
+import com.kbank.baa.notification.telegram.dto.TelegramMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -11,7 +11,7 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TelegramClient {
+public class TelegramNotificationClient {
 
     private final TelegramProperties props;
     private final RestTemplateBuilder restTemplateBuilder;
@@ -28,12 +28,12 @@ public class TelegramClient {
                 ? message.getText().substring(0, 80) + "…"
                 : message.getText();
 
-        log.info("[TelegramClient][sendMessage] → sendMessage: chatId={}, preview={}", message.getChatId(), preview);
+        log.info("[TelegramNotificationClient][sendMessage] → sendMessage: chatId={}, preview={}", message.getChatId(), preview);
         try {
             ResponseEntity<String> resp = rt().postForEntity(url, message.toFormData(), String.class);
-            log.info("[TelegramClient][sendMessage] ← ok: chatId={}, status={}", message.getChatId(), resp.getStatusCodeValue());
+            log.info("[TelegramNotificationClient][sendMessage] ← ok: chatId={}, status={}", message.getChatId(), resp.getStatusCodeValue());
         } catch (Exception e) {
-            log.error("[TelegramClient][sendMessage] ✖ fail: chatId={}, error={}", message.getChatId(), e.getMessage(), e);
+            log.error("[TelegramNotificationClient][sendMessage] ✖ fail: chatId={}, error={}", message.getChatId(), e.getMessage(), e);
         }
     }
 }

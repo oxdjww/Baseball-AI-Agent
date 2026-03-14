@@ -1,8 +1,8 @@
-package com.kbank.baa.telegram;
+package com.kbank.baa.notification.telegram;
 
 import com.kbank.baa.member.Member;
 import com.kbank.baa.member.MemberRepository;
-import com.kbank.baa.telegram.template.NotificationTemplate;
+import com.kbank.baa.template.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;

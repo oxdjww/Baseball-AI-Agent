@@ -3,12 +3,12 @@ package com.kbank.baa.batch.tasklet;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.kbank.baa.member.Member;
 import com.kbank.baa.member.MemberRepository;
-import com.kbank.baa.admin.Team;
-import com.kbank.baa.sports.GameMessageFormatter;
-import com.kbank.baa.sports.GameRosterClient;
-import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
-import com.kbank.baa.sports.dto.ScheduledGameDto;
-import com.kbank.baa.telegram.TelegramService;
+import com.kbank.baa.domain.team.Team;
+import com.kbank.baa.game.message.GameMessageFormatter;
+import com.kbank.baa.external.naver.NaverRosterClient;
+import com.kbank.baa.external.naver.dto.RealtimeGameInfoDto;
+import com.kbank.baa.external.naver.dto.ScheduledGameDto;
+import com.kbank.baa.notification.telegram.TelegramService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.openai.OpenAiChatModel;
@@ -26,7 +26,7 @@ public class GameAnalysisTasklet {
     private final OpenAiChatModel chatModel;
     private final MemberRepository memberRepo;
     private final TelegramService telegramService;
-    private final GameRosterClient gameRosterClient;
+    private final NaverRosterClient gameRosterClient;
     private final GameMessageFormatter gameMessageFormatter;
 
     public void execute(ScheduledGameDto schedule, RealtimeGameInfoDto info) {
@@ -86,7 +86,7 @@ public class GameAnalysisTasklet {
         String prompt;
         if (!"무승부".equals(winner)) {
             prompt = String.format(
-                    "※ **응답에서는 ‘etcRecords’, ‘todayKeyStats’, ‘pitchingResult’ 등 같은 변수명이나 JSON 필드를 일절 언급하지 말고**, 자연스럽고 깔끔한 한국어 문장으로만 요약해 주세요.\n\n" +
+                    "※ **응답에서는 'etcRecords', 'todayKeyStats', 'pitchingResult' 등 같은 변수명이나 JSON 필드를 일절 언급하지 말고**, 자연스럽고 깔끔한 한국어 문장으로만 요약해 주세요.\n\n" +
                             "%s 경기의 상세 JSON 데이터입니다.\n" +
                             "최종 스코어: %s %d : %d %s, 승리팀은 %s, 패배팀은 %s입니다.\n\n" +
                             "아래 JSON 필드를 참고하여, 승리팀과 패배팀의 주요 요인(결정적 사건, 핵심 지표, 결정 투수 성과 등)을 자유롭게 파악한 뒤\n" +

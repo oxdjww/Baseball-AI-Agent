@@ -1,14 +1,14 @@
-package com.kbank.baa.batch.service;
+package com.kbank.baa.game.alert;
 
 import com.kbank.baa.member.Member;
-import com.kbank.baa.admin.Team;
+import com.kbank.baa.domain.team.Team;
 import com.kbank.baa.batch.tasklet.GameAnalysisTasklet;
-import com.kbank.baa.sports.GameMessageFormatter;
-import com.kbank.baa.sports.SportsApiClient;
-import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
-import com.kbank.baa.sports.dto.ScheduledGameDto;
-import com.kbank.baa.telegram.TelegramService;
-import com.kbank.baa.telegram.template.NotificationTemplate;
+import com.kbank.baa.game.message.GameMessageFormatter;
+import com.kbank.baa.external.naver.NaverSportsClient;
+import com.kbank.baa.external.naver.dto.RealtimeGameInfoDto;
+import com.kbank.baa.external.naver.dto.ScheduledGameDto;
+import com.kbank.baa.notification.telegram.TelegramService;
+import com.kbank.baa.template.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.TaskScheduler;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class GameProcessor {
-    private final SportsApiClient apiClient;
+    private final NaverSportsClient apiClient;
     private final LeadChangeNotifier leadNotifier;
     private final Set<String> gameEndChecker = new HashSet<>();
     private final TaskScheduler taskScheduler;

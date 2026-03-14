@@ -3,11 +3,11 @@ package com.kbank.baa.batch.tasklet;
 
 import com.kbank.baa.member.Member;
 import com.kbank.baa.member.MemberRepository;
-import com.kbank.baa.admin.Team;
-import com.kbank.baa.sports.SportsApiClient;
-import com.kbank.baa.sports.dto.ScheduledGameDto;
-import com.kbank.baa.telegram.TelegramService;
-import com.kbank.baa.weather.service.RainfallService;
+import com.kbank.baa.domain.team.Team;
+import com.kbank.baa.external.naver.NaverSportsClient;
+import com.kbank.baa.external.naver.dto.ScheduledGameDto;
+import com.kbank.baa.notification.telegram.TelegramService;
+import com.kbank.baa.external.kma.KmaWeatherClient;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +24,10 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class RainAlertTasklet implements Tasklet {
-    private final RainfallService rainfallService;
+    private final KmaWeatherClient rainfallService;
     private final MemberRepository memberRepo;
     private final TelegramService telegramService;
-    private final SportsApiClient sportsApiClient;
+    private final NaverSportsClient sportsApiClient;
 
     @Override
     public RepeatStatus execute(@NonNull StepContribution contribution,

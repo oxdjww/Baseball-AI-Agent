@@ -1,7 +1,7 @@
 // src/main/java/com/kbank/baa/weather/controller/TestRainfallController.java
 package com.kbank.baa.test;
 
-import com.kbank.baa.weather.service.RainfallService;
+import com.kbank.baa.external.kma.KmaWeatherClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class RainfallTestController {
 
-    private final RainfallService rainfallService;
+    private final KmaWeatherClient rainfallService;
 
 
     @GetMapping("/{teamCode}")

@@ -1,8 +1,8 @@
 // GameAlertService.java
-package com.kbank.baa.batch.service;
+package com.kbank.baa.game.alert;
 
 import com.kbank.baa.member.MemberRepository;
-import com.kbank.baa.sports.SportsApiClient;
+import com.kbank.baa.external.naver.NaverSportsClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Service
 @RequiredArgsConstructor
 public class GameAlertService {
-    private final SportsApiClient apiClient;
+    private final NaverSportsClient apiClient;
     private final MemberRepository memberRepo;
     private final GameProcessor gameProcessor;
 

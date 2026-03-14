@@ -1,8 +1,8 @@
 package com.kbank.baa.scheduler;
 
 import com.kbank.baa.batch.tasklet.RainAlertTasklet;
-import com.kbank.baa.sports.SportsApiClient;
-import com.kbank.baa.sports.dto.ScheduledGameDto;
+import com.kbank.baa.external.naver.NaverSportsClient;
+import com.kbank.baa.external.naver.dto.ScheduledGameDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -22,7 +22,7 @@ import java.util.List;
 @Slf4j
 public class RainAlertJobScheduler {
 
-    private final SportsApiClient apiClient;
+    private final NaverSportsClient apiClient;
     private final TaskScheduler scheduler;
     private final RainAlertTasklet rainTasklet;
 

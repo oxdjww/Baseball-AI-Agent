@@ -1,7 +1,7 @@
 // SupportUtils.java
-package com.kbank.baa.batch.service;
+package com.kbank.baa.game.alert;
 
-import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
+import com.kbank.baa.external.naver.dto.RealtimeGameInfoDto;
 
 public final class SupportUtils {
     private SupportUtils() {

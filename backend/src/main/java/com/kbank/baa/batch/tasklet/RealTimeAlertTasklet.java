@@ -1,7 +1,7 @@
 // RealTimeAlertTasklet.java
 package com.kbank.baa.batch.tasklet;
 
-import com.kbank.baa.batch.service.GameAlertService;
+import com.kbank.baa.game.alert.GameAlertService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

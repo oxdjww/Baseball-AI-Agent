@@ -2,8 +2,8 @@ package com.kbank.baa.test;
 
 import com.kbank.baa.member.Member;
 import com.kbank.baa.member.MemberRepository;
-import com.kbank.baa.telegram.TelegramService;
-import com.kbank.baa.telegram.template.NotificationTemplate;
+import com.kbank.baa.notification.telegram.TelegramService;
+import com.kbank.baa.template.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;

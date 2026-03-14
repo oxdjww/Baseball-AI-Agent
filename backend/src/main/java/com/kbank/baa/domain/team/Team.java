@@ -1,5 +1,5 @@
-// src/main/java/com/kbank/baa/admin/Team.java
-package com.kbank.baa.admin;
+// src/main/java/com/kbank/baa/domain/team/Team.java
+package com.kbank.baa.domain.team;
 
 import lombok.Getter;
 

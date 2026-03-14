@@ -1,6 +1,6 @@
-package com.kbank.baa.weather.service;
+package com.kbank.baa.external.kma;
 
-import com.kbank.baa.admin.Team;
+import com.kbank.baa.domain.team.Team;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class RainfallService {
+public class KmaWeatherClient {
     private static final String API_URL = "https://apihub.kma.go.kr/api/typ01/url/kma_sfctm2.php";
     private static final String COLUMN_RN = "RN";
 
@@ -29,7 +29,7 @@ public class RainfallService {
     public double getRainfallByTeam(String teamCode, LocalDateTime baseTime) {
         Team team = Team.of(teamCode);
         String raw = fetchRawCsv(team.getStn(), baseTime);
-        log.info("[RainfallService][getRainfallByTeam] Received raw CSV:\n{}", raw);
+        log.info("[KmaWeatherClient][getRainfallByTeam] Received raw CSV:\n{}", raw);
 
         String[] header = null;
         String[] data = null;
@@ -45,7 +45,7 @@ public class RainfallService {
 
         // ◆ 관측값이 없으면 정상(0.0) 처리
         if (header == null || data == null) {
-            log.info("[RainfallService][getRainfallByTeam] 강수량 데이터 없음(정상): header={} data={}", header, data);
+            log.info("[KmaWeatherClient][getRainfallByTeam] 강수량 데이터 없음(정상): header={} data={}", header, data);
             return 0.0;
         }
 
@@ -62,7 +62,7 @@ public class RainfallService {
 
         // ◆ RN 컬럼이 하나도 없으면 정상(0.0) 처리
         if (maxRain < 0) {
-            log.info("[RainfallService][getRainfallByTeam] RN 컬럼 값 없음(정상): header={} / data={}",
+            log.info("[KmaWeatherClient][getRainfallByTeam] RN 컬럼 값 없음(정상): header={} / data={}",
                     String.join(" ", header),
                     String.join(" ", data));
             return 0.0;
@@ -88,7 +88,7 @@ public class RainfallService {
                 .queryParam("authKey", apiKey)
                 .toUriString();
 
-        log.info("[RainfallService][fetchRawCsv] KMA 요청 URL: {}", url);
+        log.info("[KmaWeatherClient][fetchRawCsv] KMA 요청 URL: {}", url);
         return rest.getForObject(url, String.class);
     }
 
@@ -100,7 +100,7 @@ public class RainfallService {
         try {
             return Double.parseDouble(s);
         } catch (NumberFormatException e) {
-            log.warn("[RainfallService][parseDouble] 숫자 파싱 실패 '{}'", s);
+            log.warn("[KmaWeatherClient][parseDouble] 숫자 파싱 실패 '{}'", s);
             return fallback;
         }
     }

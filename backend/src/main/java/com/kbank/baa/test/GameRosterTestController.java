@@ -1,8 +1,8 @@
 package com.kbank.baa.test;
 
-import com.kbank.baa.sports.GameRosterClient;
-import com.kbank.baa.sports.dto.GamePlayersResponseDto.Player;
-import com.kbank.baa.sports.dto.GameRosterResponseDto;
+import com.kbank.baa.external.naver.NaverRosterClient;
+import com.kbank.baa.external.naver.dto.GamePlayersResponseDto.Player;
+import com.kbank.baa.external.naver.dto.GameRosterResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/test")
 @RequiredArgsConstructor
 public class GameRosterTestController {
-    private final GameRosterClient gameRosterClient;
+    private final NaverRosterClient gameRosterClient;
 
     /**
      * 전체 로스터 테스트

@@ -1,6 +1,6 @@
 package com.kbank.baa.member;
 
-import com.kbank.baa.admin.Team;
+import com.kbank.baa.domain.team.Team;
 import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;

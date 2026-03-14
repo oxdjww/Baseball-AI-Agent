@@ -1,4 +1,4 @@
-package com.kbank.baa.telegram.dto;
+package com.kbank.baa.notification.telegram.dto;
 
 import lombok.Builder;
 import lombok.Value;

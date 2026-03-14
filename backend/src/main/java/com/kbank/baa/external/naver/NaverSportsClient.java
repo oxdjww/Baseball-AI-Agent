@@ -1,8 +1,8 @@
-package com.kbank.baa.sports;
+package com.kbank.baa.external.naver;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.kbank.baa.sports.dto.RealtimeGameInfoDto;
-import com.kbank.baa.sports.dto.ScheduledGameDto;
+import com.kbank.baa.external.naver.dto.RealtimeGameInfoDto;
+import com.kbank.baa.external.naver.dto.ScheduledGameDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ import java.util.Optional;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class SportsApiClient {
+public class NaverSportsClient {
     private final RestTemplate restTemplate;
 
     // 당일의 진행 경기 정보를 가져오는 함수
@@ -40,7 +40,7 @@ public class SportsApiClient {
                 .queryParam("toDate", to)
                 .toUriString();
 
-        log.info("[SportsApiClient][fetchScheduledGames] Generated Url: {}", url);
+        log.info("[NaverSportsClient][fetchScheduledGames] Generated Url: {}", url);
 
         ResponseEntity<JsonNode> resp = restTemplate.getForEntity(url, JsonNode.class);
         JsonNode root = Optional.ofNullable(resp.getBody())
