@@ -1,7 +1,7 @@
 package com.kbank.baa.web;
 
 import com.kbank.baa.member.Member;
-import com.kbank.baa.member.MemberRepository;
+import com.kbank.baa.member.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpSession;
 @RequiredArgsConstructor
 public class SignupSuccessController {
 
-    private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
     @GetMapping("/signup_success")
     public String signupSuccess(HttpSession session, Model model) {
@@ -23,8 +23,12 @@ public class SignupSuccessController {
         Long memberId;
         try { memberId = Long.valueOf(val.toString()); } catch (Exception e) { return "redirect:/home"; }
 
-        Member member = memberRepository.findById(memberId).orElse(null);
-        if (member == null) return "redirect:/home";
+        Member member;
+        try {
+            member = memberService.findByIdOrThrow(memberId);
+        } catch (IllegalArgumentException e) {
+            return "redirect:/home";
+        }
 
         model.addAttribute("member", member);
         return "signup_success"; // 네 템플릿 파일명

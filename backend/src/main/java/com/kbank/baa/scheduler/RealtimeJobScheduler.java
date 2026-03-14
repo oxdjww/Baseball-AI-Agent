@@ -1,6 +1,6 @@
 package com.kbank.baa.scheduler;
 
-import com.kbank.baa.member.MemberRepository;
+import com.kbank.baa.member.MemberService;
 import com.kbank.baa.notification.telegram.TelegramService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ public class RealtimeJobScheduler {
 
     private final JobLauncher jobLauncher;
     private final Job realTimeAlertJob;
-    private final MemberRepository memberRepository;
+    private final MemberService memberService;
     private final TelegramService telegramService;
 
     @Value("${telegram.admin-id}")
@@ -56,7 +56,7 @@ public class RealtimeJobScheduler {
         final Instant before = Instant.now().minus(Duration.ofHours(24));
 
         try {
-            int affected = memberRepository.deleteOldPending(before);
+            int affected = memberService.purgeOldPendingMembers(before);
             log.warn("[purgeMembersWithoutTelegram] 하드 삭제 rows={}", affected);
 
             if (affected > 0) {
