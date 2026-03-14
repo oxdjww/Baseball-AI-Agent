@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
@@ -23,6 +25,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class LeadChangeNotifierTest {
 
     @Mock
@@ -41,14 +44,12 @@ public class LeadChangeNotifierTest {
 
     @BeforeEach
     void setUp() {
-        // 1) 테스트용 ScheduledGame 세팅
         schedule = ScheduledGameDto.builder()
                 .gameId("GAME123")
                 .homeTeamCode("LG")
                 .awayTeamCode("LT")
                 .build();
 
-        // 2) 홈팀 팬과 어웨이팀 팬 두 명 준비
         homeFan = Member.builder()
                 .id(1L)
                 .name("Alice")
@@ -63,11 +64,9 @@ public class LeadChangeNotifierTest {
                 .telegramId("t2")
                 .build();
 
-        // 3) Redis 스텁: getAndSet → null (첫 호출, 이전 리더 없음)
         when(redis.opsForValue()).thenReturn(valueOps);
         when(valueOps.getAndSet(anyString(), anyString())).thenReturn(null);
 
-        // 4) 메시지 포맷터가 호출될 때, 멤버별로 구분된 메시지를 리턴하도록 스텁
         when(formatter.formatLeadChange(eq(homeFan), any(), anyString(), anyString()))
                 .thenReturn("[홈팀 역전] Alice 메시지");
         when(formatter.formatLeadChange(eq(awayFan), any(), anyString(), anyString()))
@@ -76,7 +75,6 @@ public class LeadChangeNotifierTest {
 
     @Test
     void notify_whenLeaderChanges_sendsToAllSupporters() {
-        // — "역전" 상태로 간주하기 위해 homeScore > awayScore 로 리더 결정
         RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
                 .statusCode("STARTED")
                 .homeTeamCode("LG")
@@ -85,13 +83,146 @@ public class LeadChangeNotifierTest {
                 .awayScore(2)
                 .build();
 
-        // 첫 호출: leaderMap 에 아무 값도 없으니, prev="NONE" → curr="LG" 로 변경 감지
         notifier.notify(schedule, List.of(homeFan, awayFan), info);
 
-        // 검증: 두 멤버 모두에게 sendMessage가 호출되어야 함
         verify(telegram, times(1))
                 .sendPersonalMessage("t1", "Alice", "[홈팀 역전] Alice 메시지");
         verify(telegram, times(1))
                 .sendPersonalMessage("t2", "Bob", "[어웨이팀 역전] Bob 메시지");
+    }
+
+    @Test
+    void notify_whenNoLeaderChange_sendsNoMessage() {
+        // Redis에 이미 "LG"가 저장되어 있고, 현재도 LG가 리드
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn("LG");
+
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .homeScore(3)
+                .awayScore(2)
+                .build();
+
+        notifier.notify(schedule, List.of(homeFan, awayFan), info);
+
+        verify(telegram, never()).sendPersonalMessage(any(), any(), any());
+    }
+
+    @Test
+    void notify_whenTiedAfterLead_sendsTiedMessage() {
+        // 이전에 LG가 리드했지만 현재 동점 → currLeader="NONE"으로 변경
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn("LG");
+
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .homeScore(2)
+                .awayScore(2)
+                .build();
+
+        notifier.notify(schedule, List.of(homeFan, awayFan), info);
+
+        // 리더가 "LG" → "NONE"으로 바뀌었으므로 formatter 호출
+        verify(formatter, times(1)).formatLeadChange(eq(homeFan), any(), eq("LG"), eq("NONE"));
+        verify(formatter, times(1)).formatLeadChange(eq(awayFan), any(), eq("LG"), eq("NONE"));
+    }
+
+    @Test
+    void notify_firstCallTiedScore_sendsNoMessage() {
+        // 첫 호출(Redis=null) + 동점(0-0) → prevLeader="NONE", currLeader="NONE" → 변화 없음
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn(null);
+
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .homeScore(0)
+                .awayScore(0)
+                .build();
+
+        notifier.notify(schedule, List.of(homeFan, awayFan), info);
+
+        verify(telegram, never()).sendPersonalMessage(any(), any(), any());
+        verify(formatter, never()).formatLeadChange(any(), any(), any(), any());
+    }
+
+    @Test
+    void notify_memberWithNullTelegramId_skipsTelegram() {
+        Member nullTelegramFan = Member.builder()
+                .id(3L)
+                .name("Carol")
+                .supportTeam(Team.LG)
+                .telegramId(null)
+                .build();
+
+        when(formatter.formatLeadChange(eq(nullTelegramFan), any(), anyString(), anyString()))
+                .thenReturn("[홈팀 역전] Carol 메시지");
+
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .homeScore(3)
+                .awayScore(2)
+                .build();
+
+        // 첫 호출: prevLeader="NONE", currLeader="LG" → 변경 감지
+        notifier.notify(schedule, List.of(nullTelegramFan), info);
+
+        // formatter는 호출되지만 telegram은 호출되지 않아야 함
+        verify(formatter, times(1)).formatLeadChange(eq(nullTelegramFan), any(), anyString(), anyString());
+        verify(telegram, never()).sendPersonalMessage(any(), any(), any());
+    }
+
+    @Test
+    void notify_exceptionInFormatter_otherMemberStillNotified() {
+        // homeFan의 formatter 호출 시 예외 발생
+        when(formatter.formatLeadChange(eq(homeFan), any(), anyString(), anyString()))
+                .thenThrow(new RuntimeException("포맷 실패"));
+
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .homeScore(3)
+                .awayScore(2)
+                .build();
+
+        notifier.notify(schedule, List.of(homeFan, awayFan), info);
+
+        // homeFan은 예외로 인해 telegram 미발송, awayFan은 정상 발송
+        verify(telegram, never()).sendPersonalMessage(eq("t1"), any(), any());
+        verify(telegram, times(1)).sendPersonalMessage("t2", "Bob", "[어웨이팀 역전] Bob 메시지");
+    }
+
+    @Test
+    void notify_emptyMemberList_noInteraction() {
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .homeScore(3)
+                .awayScore(2)
+                .build();
+
+        notifier.notify(schedule, List.of(), info);
+
+        verify(telegram, never()).sendPersonalMessage(any(), any(), any());
+        verify(formatter, never()).formatLeadChange(any(), any(), any(), any());
+    }
+
+    @Test
+    void notify_prevAwayToHome_sendsReversal() {
+        // 이전에 LT(어웨이)가 리드 → 현재 LG(홈)가 역전
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn("LT");
+
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .homeScore(5)
+                .awayScore(4)
+                .build();
+
+        notifier.notify(schedule, List.of(homeFan, awayFan), info);
+
+        // 양팀 팬 모두에게 알림 전송
+        verify(telegram, times(1)).sendPersonalMessage("t1", "Alice", "[홈팀 역전] Alice 메시지");
+        verify(telegram, times(1)).sendPersonalMessage("t2", "Bob", "[어웨이팀 역전] Bob 메시지");
     }
 }
