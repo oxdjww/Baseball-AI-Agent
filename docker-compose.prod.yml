@@ -45,11 +45,13 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      SERVER_SERVLET_CONTEXT_PATH: /services/kbaseball
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
       TELEGRAM_WEBHOOK_URL: https://netcat.kr/services/kbaseball/telegram/webhook
     ports:
       - "8080:8080"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/services/kbaseball/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
