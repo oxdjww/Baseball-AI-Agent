@@ -45,6 +45,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      TELEGRAM_WEBHOOK_URL: https://netcat.kr/services/kbaseball/telegram/webhook
     ports:
       - "8080:8080"
     healthcheck:
