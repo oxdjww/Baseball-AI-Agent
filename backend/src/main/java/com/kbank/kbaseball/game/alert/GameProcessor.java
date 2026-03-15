@@ -1,12 +1,15 @@
 package com.kbank.kbaseball.game.alert;
 
-import com.kbank.kbaseball.member.Member;
-import com.kbank.kbaseball.domain.team.Team;
 import com.kbank.kbaseball.batch.tasklet.GameAnalysisTasklet;
-import com.kbank.kbaseball.game.message.GameMessageFormatter;
+import com.kbank.kbaseball.config.featuretoggle.FeatureToggleService;
+import com.kbank.kbaseball.domain.team.Team;
 import com.kbank.kbaseball.external.naver.NaverSportsClient;
+import com.kbank.kbaseball.external.naver.NaverStandingsClient;
+import com.kbank.kbaseball.external.naver.dto.KboStandingsResult;
 import com.kbank.kbaseball.external.naver.dto.RealtimeGameInfoDto;
 import com.kbank.kbaseball.external.naver.dto.ScheduledGameDto;
+import com.kbank.kbaseball.game.message.GameMessageFormatter;
+import com.kbank.kbaseball.member.Member;
 import com.kbank.kbaseball.notification.telegram.TelegramService;
 import com.kbank.kbaseball.template.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +19,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -29,12 +33,15 @@ public class GameProcessor {
     private static final String GAME_ENDED_KEY_PREFIX = "game:ended:";
 
     private final NaverSportsClient apiClient;
+    private final NaverStandingsClient standingsClient;
     private final LeadChangeNotifier leadNotifier;
     private final StringRedisTemplate redis;
     private final TaskScheduler taskScheduler;
     private final GameAnalysisTasklet gameAnalysisTasklet;
     private final TelegramService telegramService;
     private final GameMessageFormatter gameMessageFormatter;
+    private final GameEndNotificationBuilder notificationBuilder;
+    private final FeatureToggleService featureToggleService;
 
     public void process(ScheduledGameDto schedule, List<Member> members) {
         var gameId = schedule.getGameId();
@@ -86,8 +93,8 @@ public class GameProcessor {
                     telegramService.sendMessageToTeam(
                             awayTeamCode,
                             NotificationTemplate.GAME_CANCELED,
-                            oppForAwayFans,  // "%s의"에 들어갈 '(상대팀명+과/와)'
-                            homeTeamName     // "상대: %s"에 표시할 상대팀명
+                            oppForAwayFans,
+                            homeTeamName
                     );
                     telegramService.sendMessageToTeam(
                             homeTeamCode,
@@ -97,38 +104,45 @@ public class GameProcessor {
                     );
                 }
 
-                // 1시간 뒤 게임 분석 예약
-                LocalDateTime analysisTime = LocalDateTime.now().plusHours(1);
-                Date when = Date.from(analysisTime.atZone(ZoneId.systemDefault()).toInstant());
-                taskScheduler.schedule(
-                        () -> gameAnalysisTasklet.execute(schedule, info),
-                        when
-                );
+                boolean aiEnabled = featureToggleService.isEnabled(FeatureToggleService.AI_ANALYSIS);
 
-                // 경기 종료(스코어 포함) 알림: 각 팀 팬에게 포맷만 넘김
-                String oppForAwayFans = gameMessageFormatter.withParticle(homeTeamName, "과", "와");
-                String oppForHomeFans = gameMessageFormatter.withParticle(awayTeamName, "과", "와");
+                // 순위 조회
+                KboStandingsResult standings = standingsClient.fetchStandings();
 
-                telegramService.sendMessageToTeam(
-                        awayTeamCode,
-                        NotificationTemplate.GAME_ENDED_WITH_SCORE,
-                        oppForAwayFans,         // "%s의" → 상대팀명+과/와
-                        awayTeamName,           // 스코어 라인 왼쪽 팀명 (원정)
-                        info.getAwayScore(),    // 원정 점수
-                        info.getHomeScore(),    // 홈 점수
-                        homeTeamName            // 스코어 라인 오른쪽 팀명 (홈)
-                );
-                telegramService.sendMessageToTeam(
-                        homeTeamCode,
-                        NotificationTemplate.GAME_ENDED_WITH_SCORE,
-                        oppForHomeFans,
-                        awayTeamName,
-                        info.getAwayScore(),
-                        info.getHomeScore(),
-                        homeTeamName
-                );
+                // 다음 경기 조회 (today+1 ~ today+7)
+                LocalDate today = LocalDate.now();
+                List<ScheduledGameDto> upcoming = apiClient.fetchScheduledGames(
+                        today.plusDays(1), today.plusDays(7));
 
-                log.info("[GameProcessor][process] → scheduled game analysis for {} at {} (1h after end)", gameId, analysisTime);
+                ScheduledGameDto nextGameForAway = upcoming.stream()
+                        .filter(g -> g.getHomeTeamCode().equals(awayTeamCode)
+                                || g.getAwayTeamCode().equals(awayTeamCode))
+                        .findFirst()
+                        .orElse(null);
+
+                ScheduledGameDto nextGameForHome = upcoming.stream()
+                        .filter(g -> g.getHomeTeamCode().equals(homeTeamCode)
+                                || g.getAwayTeamCode().equals(homeTeamCode))
+                        .findFirst()
+                        .orElse(null);
+
+                // 어웨이/홈 각각 메시지 빌드 & 발송
+                String awayMsg = notificationBuilder.build(awayTeamCode, info, standings, nextGameForAway, aiEnabled);
+                telegramService.sendMessageToTeam(awayTeamCode, NotificationTemplate.GENERIC, awayMsg);
+
+                String homeMsg = notificationBuilder.build(homeTeamCode, info, standings, nextGameForHome, aiEnabled);
+                telegramService.sendMessageToTeam(homeTeamCode, NotificationTemplate.GENERIC, homeMsg);
+
+                // AI 분석 예약 — aiEnabled일 때만
+                if (aiEnabled) {
+                    LocalDateTime analysisTime = LocalDateTime.now().plusHours(1);
+                    Date when = Date.from(analysisTime.atZone(ZoneId.systemDefault()).toInstant());
+                    taskScheduler.schedule(
+                            () -> gameAnalysisTasklet.execute(schedule, info),
+                            when
+                    );
+                    log.info("[GameProcessor][process] → scheduled game analysis for {} at {} (1h after end)", gameId, analysisTime);
+                }
             }
         }
 
