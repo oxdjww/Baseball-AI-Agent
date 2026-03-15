@@ -70,7 +70,11 @@ public class HomeController {
     // POST /home/signup
     @PostMapping("/signup")
     public String signup(@ModelAttribute("signup") SignupForm form,
+                         @RequestParam(name = "website", required = false, defaultValue = "") String honeypot,
                          HttpSession session) {
+        if (!honeypot.isEmpty()) {
+            return "redirect:/home";
+        }
         Member saved = memberRepository.save(
                 Member.builder()
                         .name(form.getName())

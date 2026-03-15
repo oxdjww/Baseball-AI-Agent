@@ -92,6 +92,10 @@
                                 <button type="submit" class="btn btn-primary">가입하기</button>
                             </div>
                         </div>
+                        <!-- honeypot: 봇 탐지용 숨김 필드 (사람 눈에 보이지 않음) -->
+                        <input type="text" name="website" id="website"
+                               style="display:none !important; visibility:hidden; position:absolute; left:-9999px;"
+                               autocomplete="off" tabindex="-1" aria-hidden="true"/>
                     </form>
                 </div>
 

@@ -56,9 +56,9 @@ public class RealtimeJobScheduler {
     /**
      * 매일 00:00 KST 실행
      */
-    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0/30 * * * *", zone = "Asia/Seoul")
     public void purgeMembersWithoutTelegram() {
-        final Instant before = Instant.now().minus(Duration.ofHours(24));
+        final Instant before = Instant.now().minus(Duration.ofMinutes(30));
 
         try {
             int affected = memberService.purgeOldPendingMembers(before);
