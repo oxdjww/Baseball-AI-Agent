@@ -29,8 +29,6 @@ public class TelegramWebhookService {
 
         if (result instanceof LinkResult.Linked linked) {
             telegramService.sendTemplateMessage(String.valueOf(chatId), linked.memberName(), NotificationTemplate.LINK_SUCCESS);
-        } else if (result instanceof LinkResult.MemberNotFound) {
-            telegramService.sendTemplateMessage(String.valueOf(chatId), "회원", NotificationTemplate.ACCOUNT_NOT_FOUND);
         } else if (result instanceof LinkResult.TokenExpired) {
             telegramService.sendTemplateMessage(String.valueOf(chatId), "회원", NotificationTemplate.TOKEN_EXPIRED);
         }

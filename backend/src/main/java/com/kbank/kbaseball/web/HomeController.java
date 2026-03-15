@@ -1,5 +1,7 @@
 package com.kbank.kbaseball.web;
 
+import com.kbank.kbaseball.auth.PendingMemberData;
+import com.kbank.kbaseball.auth.TelegramLinkService;
 import com.kbank.kbaseball.member.Member;
 import com.kbank.kbaseball.member.MemberRepository;
 import com.kbank.kbaseball.domain.team.Team;
@@ -17,6 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class HomeController {
 
     private final MemberRepository memberRepository;
+    private final TelegramLinkService telegramLinkService;
 
     // DTO들
     @Data
@@ -75,16 +78,12 @@ public class HomeController {
         if (!honeypot.isEmpty()) {
             return "redirect:/home";
         }
-        Member saved = memberRepository.save(
-                Member.builder()
-                        .name(form.getName())
-                        .supportTeam(form.getSupportTeam())
-                        .notifyGameAnalysis(form.isNotifyGameAnalysis())
-                        .notifyRainAlert(form.isNotifyRainAlert())
-                        .notifyRealTimeAlert(form.isNotifyRealTimeAlert())
-                        .build()
+        PendingMemberData pending = new PendingMemberData(
+                form.getName(), form.getSupportTeam(),
+                form.isNotifyGameAnalysis(), form.isNotifyRainAlert(), form.isNotifyRealTimeAlert()
         );
-        session.setAttribute("memberId", saved.getId());
+        String token = telegramLinkService.storePendingSignup(pending);
+        session.setAttribute("signupToken", token);
         return "redirect:/signup_success";
     }
 

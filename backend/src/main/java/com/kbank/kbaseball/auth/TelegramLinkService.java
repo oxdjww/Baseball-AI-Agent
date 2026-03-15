@@ -1,5 +1,7 @@
 package com.kbank.kbaseball.auth;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kbank.kbaseball.member.Member;
 import com.kbank.kbaseball.member.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -18,40 +20,65 @@ import java.util.UUID;
 @Slf4j
 public class TelegramLinkService {
 
-    private static final String BOT_USERNAME = "baseball_ai_agent_bot";
-    private static final String REDIS_KEY_PREFIX = "tg:link:";
+    private static final String REDIS_KEY_PREFIX = "pending:signup:";
 
     private final StringRedisTemplate redis;
     private final MemberService memberService;
+    private final ObjectMapper objectMapper;
 
-    public String generateLinkUrl(Long memberId) {
+    public String storePendingSignup(PendingMemberData data) {
         String token = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-        redis.opsForValue().set(REDIS_KEY_PREFIX + token, String.valueOf(memberId), Duration.ofMinutes(15));
-        return "https://t.me/" + BOT_USERNAME + "?start=" + token;
+        String key = REDIS_KEY_PREFIX + token;
+        try {
+            redis.opsForValue().set(key, objectMapper.writeValueAsString(data), Duration.ofMinutes(15));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("PendingMemberData 직렬화 실패", e);
+        }
+        log.info("[TelegramLinkService][storePendingSignup] token={} stored", token);
+        return token;
+    }
+
+    public PendingMemberData getPendingMember(String token) {
+        String json = redis.opsForValue().get(REDIS_KEY_PREFIX + token);
+        if (json == null) return null;
+        try {
+            return objectMapper.readValue(json, PendingMemberData.class);
+        } catch (JsonProcessingException e) {
+            log.error("[TelegramLinkService][getPendingMember] 역직렬화 실패: {}", e.getMessage());
+            return null;
+        }
     }
 
     @Transactional
     public LinkResult linkAccount(String token, Long telegramUserId) {
         String key = REDIS_KEY_PREFIX + token;
-        String memberIdStr = redis.opsForValue().get(key);
+        String json = redis.opsForValue().get(key);
 
-        log.info("[TelegramLinkService][linkAccount] token={} -> memberId={}", token, memberIdStr);
+        log.info("[TelegramLinkService][linkAccount] token={} -> json found={}", token, json != null);
 
-        if (memberIdStr == null) {
+        if (json == null) {
             return new LinkResult.TokenExpired();
         }
 
-        Long memberId = Long.valueOf(memberIdStr);
-        Member member;
+        PendingMemberData data;
         try {
-            member = memberService.findByIdOrThrow(memberId);
-        } catch (IllegalArgumentException e) {
-            return new LinkResult.MemberNotFound();
+            data = objectMapper.readValue(json, PendingMemberData.class);
+        } catch (JsonProcessingException e) {
+            log.error("[TelegramLinkService][linkAccount] 역직렬화 실패: {}", e.getMessage());
+            return new LinkResult.TokenExpired();
         }
 
-        memberService.linkTelegramId(memberId, String.valueOf(telegramUserId));
+        Member saved = memberService.save(
+                Member.builder()
+                        .name(data.name())
+                        .supportTeam(data.supportTeam())
+                        .notifyGameAnalysis(data.notifyGameAnalysis())
+                        .notifyRainAlert(data.notifyRainAlert())
+                        .notifyRealTimeAlert(data.notifyRealTimeAlert())
+                        .telegramId(String.valueOf(telegramUserId))
+                        .build()
+        );
 
-        // Redis 삭제는 DB 커밋 성공 후 실행 — 트랜잭션 롤백 시 Redis 불일치 방지
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
@@ -60,6 +87,6 @@ public class TelegramLinkService {
             }
         });
 
-        return new LinkResult.Linked(member.getName());
+        return new LinkResult.Linked(saved.getName());
     }
 }

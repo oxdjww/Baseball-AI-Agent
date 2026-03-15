@@ -1,7 +1,8 @@
 package com.kbank.kbaseball.web;
 
+import com.kbank.kbaseball.auth.PendingMemberData;
+import com.kbank.kbaseball.auth.TelegramLinkService;
 import com.kbank.kbaseball.domain.team.Team;
-import com.kbank.kbaseball.member.Member;
 import com.kbank.kbaseball.member.MemberRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +33,12 @@ class HomeControllerTest {
     @MockBean
     MemberRepository memberRepository;
 
+    @MockBean
+    TelegramLinkService telegramLinkService;
+
     @Test
     void signup_validForm_redirectsToSignupSuccess() throws Exception {
-        Member saved = Member.builder().id(1L).name("테스트").supportTeam(Team.LG).build();
-        when(memberRepository.save(any())).thenReturn(saved);
+        when(telegramLinkService.storePendingSignup(any())).thenReturn("testtoken1234567");
 
         mockMvc.perform(post("/home/signup")
                         .param("name", "테스트")
@@ -46,9 +49,19 @@ class HomeControllerTest {
     }
 
     @Test
-    void signup_savesMemberWithCorrectFields() throws Exception {
-        Member saved = Member.builder().id(1L).name("테스트").supportTeam(Team.LG).build();
-        when(memberRepository.save(any())).thenReturn(saved);
+    void signup_setsSessionSignupToken() throws Exception {
+        when(telegramLinkService.storePendingSignup(any())).thenReturn("abc1234567890123");
+
+        mockMvc.perform(post("/home/signup")
+                        .param("name", "테스트")
+                        .param("supportTeam", "LG"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(request().sessionAttribute("signupToken", "abc1234567890123"));
+    }
+
+    @Test
+    void signup_storesPendingWithCorrectFields() throws Exception {
+        when(telegramLinkService.storePendingSignup(any())).thenReturn("token");
 
         mockMvc.perform(post("/home/signup")
                         .param("name", "테스트")
@@ -56,29 +69,16 @@ class HomeControllerTest {
                         .param("notifyGameAnalysis", "true"))
                 .andExpect(status().is3xxRedirection());
 
-        verify(memberRepository).save(argThat(m ->
-                "테스트".equals(m.getName()) &&
-                Team.LG == m.getSupportTeam() &&
-                m.isNotifyGameAnalysis()
+        verify(telegramLinkService).storePendingSignup(argThat((PendingMemberData p) ->
+                "테스트".equals(p.name()) &&
+                Team.LG == p.supportTeam() &&
+                p.notifyGameAnalysis()
         ));
     }
 
     @Test
-    void signup_setsSessionMemberId() throws Exception {
-        Member saved = Member.builder().id(42L).name("테스트").supportTeam(Team.LG).build();
-        when(memberRepository.save(any())).thenReturn(saved);
-
-        mockMvc.perform(post("/home/signup")
-                        .param("name", "테스트")
-                        .param("supportTeam", "LG"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(request().sessionAttribute("memberId", 42L));
-    }
-
-    @Test
-    void signup_withAllNotificationsTrue_savesCorrectly() throws Exception {
-        Member saved = Member.builder().id(1L).name("알림왕").supportTeam(Team.LT).build();
-        when(memberRepository.save(any())).thenReturn(saved);
+    void signup_withAllNotificationsTrue_storesCorrectly() throws Exception {
+        when(telegramLinkService.storePendingSignup(any())).thenReturn("token");
 
         mockMvc.perform(post("/home/signup")
                         .param("name", "알림왕")
@@ -88,27 +88,26 @@ class HomeControllerTest {
                         .param("notifyRealTimeAlert", "true"))
                 .andExpect(status().is3xxRedirection());
 
-        verify(memberRepository).save(argThat(m ->
-                m.isNotifyGameAnalysis() &&
-                m.isNotifyRainAlert() &&
-                m.isNotifyRealTimeAlert()
+        verify(telegramLinkService).storePendingSignup(argThat((PendingMemberData p) ->
+                p.notifyGameAnalysis() &&
+                p.notifyRainAlert() &&
+                p.notifyRealTimeAlert()
         ));
     }
 
     @Test
-    void signup_withNoNotifications_savesWithDefaultFalse() throws Exception {
-        Member saved = Member.builder().id(1L).name("조용이").supportTeam(Team.HH).build();
-        when(memberRepository.save(any())).thenReturn(saved);
+    void signup_withNoNotifications_storesWithDefaultFalse() throws Exception {
+        when(telegramLinkService.storePendingSignup(any())).thenReturn("token");
 
         mockMvc.perform(post("/home/signup")
                         .param("name", "조용이")
                         .param("supportTeam", "HH"))
                 .andExpect(status().is3xxRedirection());
 
-        verify(memberRepository).save(argThat(m ->
-                !m.isNotifyGameAnalysis() &&
-                !m.isNotifyRainAlert() &&
-                !m.isNotifyRealTimeAlert()
+        verify(telegramLinkService).storePendingSignup(argThat((PendingMemberData p) ->
+                !p.notifyGameAnalysis() &&
+                !p.notifyRainAlert() &&
+                !p.notifyRealTimeAlert()
         ));
     }
 }

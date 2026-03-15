@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 
@@ -52,8 +51,4 @@ public class MemberService {
         return memberRepository.findBySupportTeamAndNotifyRainAlertTrue(team);
     }
 
-    @Transactional
-    public int purgeOldPendingMembers(Instant before) {
-        return memberRepository.deleteOldPending(before);
-    }
 }

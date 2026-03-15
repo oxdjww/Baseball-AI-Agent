@@ -1,7 +1,7 @@
 package com.kbank.kbaseball.web;
 
-import com.kbank.kbaseball.member.Member;
-import com.kbank.kbaseball.member.MemberService;
+import com.kbank.kbaseball.auth.PendingMemberData;
+import com.kbank.kbaseball.auth.TelegramLinkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,24 +13,23 @@ import jakarta.servlet.http.HttpSession;
 @RequiredArgsConstructor
 public class SignupSuccessController {
 
-    private final MemberService memberService;
+    private static final String BOT_USERNAME = "baseball_ai_agent_bot";
+
+    private final TelegramLinkService telegramLinkService;
 
     @GetMapping("/signup_success")
     public String signupSuccess(HttpSession session, Model model) {
-        Object val = session.getAttribute("memberId");
-        if (val == null) return "redirect:/home"; // 보호
+        Object tokenVal = session.getAttribute("signupToken");
+        if (tokenVal == null) return "redirect:/home";
 
-        Long memberId;
-        try { memberId = Long.valueOf(val.toString()); } catch (Exception e) { return "redirect:/home"; }
-
-        Member member;
-        try {
-            member = memberService.findByIdOrThrow(memberId);
-        } catch (IllegalArgumentException e) {
-            return "redirect:/home";
+        PendingMemberData pending = telegramLinkService.getPendingMember(tokenVal.toString());
+        if (pending == null) {
+            model.addAttribute("expired", true);
+            return "signup_success";
         }
 
-        model.addAttribute("member", member);
-        return "signup_success"; // 네 템플릿 파일명
+        model.addAttribute("name", pending.name());
+        model.addAttribute("telegramUrl", "https://t.me/" + BOT_USERNAME + "?start=" + tokenVal);
+        return "signup_success";
     }
 }

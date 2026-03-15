@@ -26,7 +26,7 @@ public enum NotificationTemplate {
     // 웹훅/연동 플로우
     LINK_SUCCESS("텔레그램 연동이 완료되었습니다 ✅"),
     ACCOUNT_NOT_FOUND("계정을 찾을 수 없습니다. 웹에서 다시 시도해주세요."),
-    TOKEN_EXPIRED("토큰이 만료되었어요. 웹에서 다시 시도해주세요."),
+    TOKEN_EXPIRED("가입 정보가 만료되었습니다. 웹에서 다시 가입해주세요."),
     WELCOME_GUIDE("안녕하세요!\n🧢 Baseball AI Agent입니다.\n\n매일 진행되는 야구 경기 알림을 받아보세요! ⚾️\n기능 오작동 및 오류 문의는 아래 링크로 제보해 주세요.\n\n%s\n\n감사합니다."),
 
     // 범용
