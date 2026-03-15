@@ -26,12 +26,12 @@ COPY src ./src
 RUN ./gradlew clean build -x test --no-daemon
 
 # 2) Runtime stage
-FROM openjdk:17-slim
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 # 빌드 산출물(JAR) 복사
 COPY --from=builder /app/build/libs/*.jar app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xmx400m", "-Xms256m", "-XX:+UseContainerSupport", "-jar", "app.jar"]
 

@@ -1,0 +1,59 @@
+services:
+  db:
+    container_name: baa-database
+    image: postgres:15
+    restart: unless-stopped
+    mem_limit: 256m
+    command: >
+      postgres
+      -c shared_buffers=64MB
+      -c max_connections=50
+      -c effective_cache_size=128MB
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+
+  redis:
+    container_name: baa-redis
+    image: redis:alpine
+    restart: unless-stopped
+    mem_limit: 64m
+    command: redis-server --maxmemory 50mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    expose:
+      - "6379"
+
+  backend:
+    container_name: baa-backend
+    image: oxdjww/baa-backend:latest
+    restart: unless-stopped
+    mem_limit: 512m
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  db_data:
+  redis_data:
