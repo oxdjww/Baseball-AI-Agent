@@ -70,7 +70,8 @@
                         <td class="ps-3 text-muted small" th:text="${m.id}"></td>
                         <td class="fw-semibold" th:text="${m.name}"></td>
                         <td>
-                            <span class="badge text-bg-light border fw-normal" th:text="${m.supportTeam.displayName}"></span>
+                            <span class="badge text-bg-light border fw-normal"
+                                  th:text="${m.supportTeam != null ? m.supportTeam.displayName : '미지정'}"></span>
                         </td>
                         <td>
                             <span th:if="${m.telegramId != null}"

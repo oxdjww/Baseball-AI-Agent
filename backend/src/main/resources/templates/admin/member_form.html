@@ -32,7 +32,7 @@
                     <div class="d-flex flex-wrap gap-2 mt-1">
                         <th:block th:each="team : ${teams}">
                             <input type="radio" class="btn-check" th:id="${'team-' + team.name()}"
-                                   th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off"/>
+                                   th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off" required/>
                             <label class="team-chip" th:for="${'team-' + team.name()}"
                                    th:text="${team.displayName}"></label>
                         </th:block>
