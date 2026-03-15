@@ -19,11 +19,10 @@ spring:
   ai:
     openai:
       api-key: test-key
-  redis:
-    data:
-      redis:
-        host: localhost
-        port: 6379
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 telegram:
   bot-token: test-token
