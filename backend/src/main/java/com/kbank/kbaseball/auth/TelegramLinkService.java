@@ -26,7 +26,7 @@ public class TelegramLinkService {
 
     public String generateLinkUrl(Long memberId) {
         String token = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-        redis.opsForValue().set(REDIS_KEY_PREFIX + token, String.valueOf(memberId), Duration.ofMinutes(5));
+        redis.opsForValue().set(REDIS_KEY_PREFIX + token, String.valueOf(memberId), Duration.ofMinutes(15));
         return "https://t.me/" + BOT_USERNAME + "?start=" + token;
     }
 
