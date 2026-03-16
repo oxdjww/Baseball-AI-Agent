@@ -1,6 +1,12 @@
 # === Secret Config Files (DO NOT COMMIT) ===
 /.env
 /backend/.idea/
+/.mcp.json
+
+# === Runtime Files (DO NOT COMMIT) ===
+/app.pid
+/backend/logs/
+/.openclaw/
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/java,gradle,maven,eclipse,intellij,intellij+all,intellij+iml,macos,visualstudiocode,windows
