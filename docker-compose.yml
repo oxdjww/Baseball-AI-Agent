@@ -1,6 +1,6 @@
 services:
   db:
-    container_name: baa-database
+    container_name: kbaseball-database
     image: postgres:15
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -12,7 +12,7 @@ services:
       - "5432:5432"
 
   redis:
-    container_name: baa-redis
+    container_name: kbaseball-redis
     image: redis:alpine
     ports:
       - "6379:6379"
@@ -20,11 +20,11 @@ services:
       - redis_data:/data
 
   backend:
-    container_name: baa-backend
+    container_name: kbaseball-backend
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image: oxdjww/baa-backend:latest
+    image: oxdjww/kbaseball-backend:latest
     depends_on:
       - redis
       - db

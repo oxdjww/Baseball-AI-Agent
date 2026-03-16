@@ -75,9 +75,9 @@ mkdir -p /root/kbaseball
 if [ ! -f /root/kbaseball/.env ]; then
   cat > /root/kbaseball/.env.template << 'EOF'
 # PostgreSQL
-POSTGRES_USER=baa
+POSTGRES_USER=kbaseball
 POSTGRES_PASSWORD=CHANGE_ME
-POSTGRES_DB=baa
+POSTGRES_DB=kbaseball
 
 # Spring Boot
 ADMIN_PASSWORD=CHANGE_ME

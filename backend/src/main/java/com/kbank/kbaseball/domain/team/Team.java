@@ -1,4 +1,4 @@
-// src/main/java/com/kbank/baa/domain/team/Team.java
+// src/main/java/com/kbank/kbaseball/domain/team/Team.java
 package com.kbank.kbaseball.domain.team;
 
 import lombok.Getter;

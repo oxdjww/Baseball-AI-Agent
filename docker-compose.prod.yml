@@ -1,6 +1,6 @@
 services:
   db:
-    container_name: baa-database
+    container_name: kbaseball-database
     image: postgres:15
     restart: unless-stopped
     mem_limit: 256m
@@ -15,11 +15,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - db_data:/var/lib/postgresql/data
-    expose:
-      - "5432"
+    ports:
+      - "5432:5432"
 
   redis:
-    container_name: baa-redis
+    container_name: kbaseball-redis
     image: redis:alpine
     restart: unless-stopped
     mem_limit: 64m
@@ -30,8 +30,8 @@ services:
       - "6379"
 
   backend:
-    container_name: baa-backend
-    image: oxdjww/baa-backend:latest
+    container_name: kbaseball-backend
+    image: oxdjww/kbaseball-backend:latest
     restart: unless-stopped
     mem_limit: 512m
     depends_on:

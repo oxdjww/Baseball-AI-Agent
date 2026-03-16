@@ -1,4 +1,4 @@
-// com/kbank/baa/external/naver/dto/ScheduledGameDto.java
+// com/kbank/kbaseball/external/naver/dto/ScheduledGameDto.java
 package com.kbank.kbaseball.external.naver.dto;
 
 import lombok.Builder;

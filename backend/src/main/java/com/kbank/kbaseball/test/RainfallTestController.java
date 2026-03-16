@@ -1,4 +1,4 @@
-// src/main/java/com/kbank/baa/weather/controller/TestRainfallController.java
+// src/main/java/com/kbank/kbaseball/test/RainfallTestController.java
 package com.kbank.kbaseball.test;
 
 import com.kbank.kbaseball.external.kma.KmaWeatherClient;
