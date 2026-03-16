@@ -31,3 +31,6 @@ telegram:
 kma:
   api:
     key: test-key
+
+scheduler:
+  await-termination-seconds: 5

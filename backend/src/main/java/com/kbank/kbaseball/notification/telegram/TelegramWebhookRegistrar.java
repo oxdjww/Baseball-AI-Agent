@@ -22,8 +22,13 @@ public class TelegramWebhookRegistrar {
     @EventListener(ApplicationReadyEvent.class)
     public void registerWebhook() {
         String webhookUrl = telegramProperties.getWebhookUrl();
-        String apiUrl = telegramProperties.getApiUrl() + "setWebhook";
 
+        if (webhookUrl == null || webhookUrl.isBlank()) {
+            log.warn("[TelegramWebhookRegistrar] webhook-url 미설정 — webhook 등록 건너뜀");
+            return;
+        }
+
+        String apiUrl = telegramProperties.getApiUrl() + "setWebhook";
         log.info("[TelegramWebhookRegistrar] → setWebhook: {}", webhookUrl);
         try {
             RestTemplate rt = restTemplateBuilder.build();

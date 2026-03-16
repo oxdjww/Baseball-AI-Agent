@@ -324,9 +324,37 @@ graph LR
 
 ---
 
+## AI Agent Workspace (OpenClaw)
+
+이 프로젝트는 **OpenClaw** 기반 AI 에이전트 워크스페이스를 함께 운영합니다.
+Claude가 세션 간 컨텍스트를 파일로 유지하며, 서버 관제·문서 관리·Notion 연동 등을 자율 수행합니다.
+
+### Workspace 구조
+
+| 파일 | 역할 |
+|------|------|
+| `AGENTS.md` | 에이전트 세션 동작 규칙 — 메모리 관리, 그룹챗 예절, Heartbeat 활용법 |
+| `SOUL.md` | 에이전트 핵심 가치관 및 행동 원칙 |
+| `IDENTITY.md` | 에이전트 이름 · 캐릭터 · 시그니처 정의 |
+| `USER.md` | 사용자 프로필 — 이름, 타임존, 선호 스타일 |
+| `HEARTBEAT.md` | 주기적 점검 태스크 목록 (서버 상태, 이슈 배치 점검) |
+| `BOOTSTRAP.md` | 최초 세션 초기화 절차 |
+| `TOOLS.md` | 로컬 환경 도구 메모 — SSH 호스트, 디바이스 정보 |
+
+### 활성 통합
+
+| 통합 | 용도 |
+|------|------|
+| **Notion MCP** | 개발 로그·문서 자동 작성 |
+| **GitHub MCP** | 이슈·PR 조회 및 코멘트 |
+| **OpenClaw Heartbeat** | 주기적 서버 관제·로그 점검 |
+
+---
+
 ## Daily Work Logs
 
 | 날짜 | 내용 요약 |
 |------|----------|
+| [2026-03-16](docs/daily-logs/2026-03-16.md) | HikariCP keepalive 설정, TaskScheduler 타임아웃 개선, TelegramWebhookRegistrar NPE 수정, OpenClaw 워크스페이스 초기화 |
 | [2026-03-15](docs/daily-logs/2026-03-15.md) | v2 런칭: 관제 시스템, 경기종료 알림 고도화, Vultr 배포, Lazy Registration, 23개 커밋 |
 | [2026-03-14](docs/daily-logs/2026-03-14.md) | Phase 1~6 대규모 리팩터링, CLAUDE.md 추가 |
