@@ -7,6 +7,7 @@ import com.kbank.kbaseball.external.naver.dto.KboStandingsResult;
 import com.kbank.kbaseball.external.naver.dto.RealtimeGameInfoDto;
 import com.kbank.kbaseball.external.naver.dto.ScheduledGameDto;
 import com.kbank.kbaseball.game.alert.GameEndNotificationBuilder;
+import com.kbank.kbaseball.game.alert.StandingsAdjuster;
 import com.kbank.kbaseball.notification.telegram.TelegramService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +25,7 @@ public class GameEndNotificationTestController {
 
     private final NaverSportsClient sportsApiClient;
     private final NaverStandingsClient standingsClient;
+    private final StandingsAdjuster standingsAdjuster;
     private final GameEndNotificationBuilder notificationBuilder;
     private final TelegramService telegramService;
     private final FeatureToggleService featureToggleService;
@@ -54,7 +56,8 @@ public class GameEndNotificationTestController {
                 .orElseThrow(() -> new IllegalArgumentException("찾을 수 없는 gameId: " + gameId));
 
         RealtimeGameInfoDto info = sportsApiClient.fetchGameInfo(gameId);
-        KboStandingsResult standings = standingsClient.fetchStandings();
+        KboStandingsResult standings = standingsAdjuster.applyGameResult(
+                standingsClient.fetchStandings(), info);
 
         LocalDate today = LocalDate.now();
         List<ScheduledGameDto> upcoming = sportsApiClient.fetchScheduledGames(
