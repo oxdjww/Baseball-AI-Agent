@@ -34,6 +34,7 @@ public class GameProcessor {
 
     private final NaverSportsClient apiClient;
     private final NaverStandingsClient standingsClient;
+    private final StandingsAdjuster standingsAdjuster;
     private final LeadChangeNotifier leadNotifier;
     private final StringRedisTemplate redis;
     private final TaskScheduler taskScheduler;
@@ -106,8 +107,9 @@ public class GameProcessor {
 
                 boolean aiEnabled = featureToggleService.isEnabled(FeatureToggleService.AI_ANALYSIS);
 
-                // 순위 조회
-                KboStandingsResult standings = standingsClient.fetchStandings();
+                // 순위 조회 및 금일 경기 결과 보정
+                KboStandingsResult rawStandings = standingsClient.fetchStandings();
+                KboStandingsResult standings = standingsAdjuster.applyGameResult(rawStandings, info);
 
                 // 다음 경기 조회 (today+1 ~ today+7)
                 LocalDate today = LocalDate.now();
