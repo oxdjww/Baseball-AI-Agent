@@ -18,7 +18,7 @@ ssh kbaseball "docker logs kbaseball-app --tail 100"
 ## 프로젝트 구조
 
 ```
-Baseball-Ai-Agent/
+Kbaseball/
 ├── backend/                  # Spring Boot 앱
 │   ├── src/main/java/com/kbank/kbaseball/
 │   │   ├── config/           # HikariCP, TaskScheduler, Security, Batch
