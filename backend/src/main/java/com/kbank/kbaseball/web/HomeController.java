@@ -94,7 +94,7 @@ public class HomeController {
                         RedirectAttributes ra) {
         return memberRepository.findByNameAndSupportTeam(form.getName(), form.getSupportTeam())
                 .map(m -> {
-                    session.setAttribute("memberId", m.getSeqId());
+                    session.setAttribute("memberId", m.getId());
                     return "redirect:/home?activeTab=login"; // 로그인 탭으로
                 })
                 .orElseGet(() -> {
@@ -122,7 +122,7 @@ public class HomeController {
         if (member == null) return "redirect:/home?activeTab=login";
 
         PrefForm pref = new PrefForm();
-        pref.setId(member.getSeqId());
+        pref.setId(member.getId());
         pref.setSupportTeam(member.getSupportTeam());
         pref.setNotifyGameAnalysis(member.isNotifyGameAnalysis());
         pref.setNotifyRainAlert(member.isNotifyRainAlert());

@@ -17,7 +17,7 @@ public class MemberService {
 
     public List<Member> findAllSorted() {
         return memberRepository.findAll().stream()
-                .sorted(Comparator.comparing(Member::getSeqId))
+                .sorted(Comparator.comparing(Member::getId))
                 .toList();
     }
 
