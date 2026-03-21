@@ -22,6 +22,7 @@ import java.util.UUID;
 public class TelegramLinkService {
 
     private static final String REDIS_KEY_PREFIX = "pending:signup:";
+    private static final String LINKED_KEY_PREFIX = "linked:signup:";
 
     private final StringRedisTemplate redis;
     private final MemberService memberService;
@@ -90,10 +91,15 @@ public class TelegramLinkService {
             @Override
             public void afterCommit() {
                 redis.delete(key);
-                log.info("[TelegramLinkService][linkAccount] Redis token deleted after commit: {}", key);
+                redis.opsForValue().set(LINKED_KEY_PREFIX + token, "1", Duration.ofMinutes(10));
+                log.info("[TelegramLinkService][linkAccount] Redis token deleted, linked marker set: {}", token);
             }
         });
 
         return new LinkResult.Linked(saved.getName());
+    }
+
+    public boolean isLinked(String token) {
+        return Boolean.TRUE.equals(redis.hasKey(LINKED_KEY_PREFIX + token));
     }
 }

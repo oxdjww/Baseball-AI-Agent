@@ -24,6 +24,9 @@ public class SignupSuccessController {
 
         PendingMemberData pending = telegramLinkService.getPendingMember(tokenVal.toString());
         if (pending == null) {
+            if (telegramLinkService.isLinked(tokenVal.toString())) {
+                return "redirect:/home?activeTab=login&welcome=true";
+            }
             model.addAttribute("expired", true);
             return "signup_success";
         }
