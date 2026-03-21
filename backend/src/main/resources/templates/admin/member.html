@@ -67,7 +67,7 @@
                     </thead>
                     <tbody>
                     <tr th:each="m : ${members}">
-                        <td class="ps-3 text-muted small" th:text="${m.id}"></td>
+                        <td class="ps-3 text-muted small" th:text="${m.seqId}"></td>
                         <td class="fw-semibold" th:text="${m.name}"></td>
                         <td>
                             <span class="badge text-bg-light border fw-normal"
@@ -94,9 +94,9 @@
                         </td>
                         <td class="pe-3">
                             <div class="d-flex gap-2">
-                                <a th:href="@{'/admin/members/' + ${m.id} + '/edit'}"
+                                <a th:href="@{'/admin/members/' + ${m.seqId} + '/edit'}"
                                    class="btn btn-sm btn-outline-primary">수정</a>
-                                <form th:action="@{'/admin/members/' + ${m.id} + '/delete'}" method="post"
+                                <form th:action="@{'/admin/members/' + ${m.seqId} + '/delete'}" method="post"
                                       onsubmit="return confirm('정말 삭제하시겠습니까?');">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
                                 </form>

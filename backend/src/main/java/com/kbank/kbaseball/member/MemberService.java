@@ -17,12 +17,12 @@ public class MemberService {
 
     public List<Member> findAllSorted() {
         return memberRepository.findAll().stream()
-                .sorted(Comparator.comparing(Member::getId))
+                .sorted(Comparator.comparing(Member::getSeqId))
                 .toList();
     }
 
     public Member findByIdOrThrow(Long id) {
-        return memberRepository.findById(id)
+        return memberRepository.findByLongId(id)
                 .orElseThrow(() -> new IllegalArgumentException("Not found: " + id));
     }
 
@@ -33,14 +33,7 @@ public class MemberService {
 
     @Transactional
     public void deleteById(Long id) {
-        memberRepository.deleteById(id);
-    }
-
-    @Transactional
-    public void linkTelegramId(Long memberId, String telegramId) {
-        Member m = findByIdOrThrow(memberId);
-        m.setTelegramId(telegramId);
-        memberRepository.save(m);
+        memberRepository.deleteByLongId(id);
     }
 
     public List<Member> findByNotifyGameAnalysisTrue() {

@@ -62,7 +62,7 @@ public class HomeController {
         if (val != null) {
             try {
                 Long memberId = Long.valueOf(val.toString());
-                member = memberRepository.findById(memberId).orElse(null);
+                member = memberRepository.findByLongId(memberId).orElse(null);
             } catch (Exception ignored) {
             }
         }
@@ -94,7 +94,7 @@ public class HomeController {
                         RedirectAttributes ra) {
         return memberRepository.findByNameAndSupportTeam(form.getName(), form.getSupportTeam())
                 .map(m -> {
-                    session.setAttribute("memberId", m.getId());
+                    session.setAttribute("memberId", m.getSeqId());
                     return "redirect:/home?activeTab=login"; // 로그인 탭으로
                 })
                 .orElseGet(() -> {
@@ -117,12 +117,12 @@ public class HomeController {
     public String preferences(HttpSession session, Model model) {
         Object val = session.getAttribute("memberId");
         if (val == null) return "redirect:/home?activeTab=login";
-        Member member = memberRepository.findById(Long.valueOf(val.toString()))
+        Member member = memberRepository.findByLongId(Long.valueOf(val.toString()))
                 .orElse(null);
         if (member == null) return "redirect:/home?activeTab=login";
 
         PrefForm pref = new PrefForm();
-        pref.setId(member.getId());
+        pref.setId(member.getSeqId());
         pref.setSupportTeam(member.getSupportTeam());
         pref.setNotifyGameAnalysis(member.isNotifyGameAnalysis());
         pref.setNotifyRainAlert(member.isNotifyRainAlert());
@@ -145,7 +145,7 @@ public class HomeController {
             return "redirect:/home?activeTab=login";
         }
 
-        Member m = memberRepository.findById(form.getId())
+        Member m = memberRepository.findByLongId(form.getId())
                 .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
         m.setSupportTeam(form.getSupportTeam());
         m.setNotifyGameAnalysis(form.isNotifyGameAnalysis());
