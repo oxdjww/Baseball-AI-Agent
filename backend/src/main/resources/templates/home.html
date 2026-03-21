@@ -50,9 +50,13 @@
             display: flex;
             margin-bottom: 24px;
             border: none;
+            width: 100%; /* 부모 너비 꽉 채우기 */
+        }
+        .segmented-control .nav-item {
+            flex: 1; /* li 태그가 정확히 50%씩 영역을 나눠 가지도록 수정 */
         }
         .segmented-control .nav-link {
-            flex: 1;
+            width: 100%; /* 버튼이 li 영역을 꽉 채우도록 수정 */
             border-radius: 10px;
             color: var(--text-muted);
             font-weight: 600;
@@ -61,6 +65,7 @@
             text-align: center;
             transition: all 0.2s ease;
             font-size: 15px;
+            background: transparent; /* 비활성화 탭의 배경을 투명하게 처리 */
         }
         .segmented-control .nav-link.active {
             background: var(--surface-card);
