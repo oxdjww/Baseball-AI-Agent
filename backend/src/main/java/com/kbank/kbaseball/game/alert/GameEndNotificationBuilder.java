@@ -41,6 +41,7 @@ public class GameEndNotificationBuilder {
             String rankingTypeLabel = "PRESEASON".equals(standingsResult.gameType())
                     ? "시범경기 순위" : "정규시즌 순위";
             sb.append(String.format("\n\n📊 <b>실시간 %s</b>\n", rankingTypeLabel));
+            sb.append("<i>※ 금일 경기 결과를 즉시 반영한 순위로, 네이버 등 공식 집계와 일시적으로 다를 수 있습니다.</i>\n");
 
             List<KboTeamStandingDto> standings = standingsResult.standings();
             int myIndex = -1;
