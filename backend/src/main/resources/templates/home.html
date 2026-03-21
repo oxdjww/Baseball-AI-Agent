@@ -3,199 +3,363 @@
 <head>
     <title>홈 · Kbaseball</title>
     <th:block th:replace="~{fragments/layout :: head}"></th:block>
+    <style>
+        /* 모던 UI 공통 변수 */
+        :root {
+            --brand-primary: #3b82f6;
+            --brand-primary-hover: #2563eb;
+            --brand-primary-light: #eff6ff;
+            --surface-bg: #f8fafc;
+            --surface-card: #ffffff;
+            --surface-element: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --error-color: #ef4444;
+            --error-bg: #fef2f2;
+        }
+
+        body {
+            background-color: var(--surface-bg);
+            color: var(--text-main);
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 모바일 최적화 래퍼 */
+        .mobile-wrapper {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* 메인 카드 레이아웃 */
+        .modern-card {
+            border: none;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            background: var(--surface-card);
+            padding: 24px 20px;
+        }
+
+        /* 세그먼트 컨트롤 (탭) */
+        .segmented-control {
+            background: var(--surface-element);
+            padding: 4px;
+            border-radius: 14px;
+            display: flex;
+            margin-bottom: 24px;
+            border: none;
+        }
+        .segmented-control .nav-link {
+            flex: 1;
+            border-radius: 10px;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 12px 0;
+            border: none;
+            text-align: center;
+            transition: all 0.2s ease;
+            font-size: 15px;
+        }
+        .segmented-control .nav-link.active {
+            background: var(--surface-card);
+            color: var(--brand-primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        /* 입력 폼 공통 */
+        .input-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            display: block;
+        }
+        .modern-input {
+            background-color: var(--surface-element);
+            border: 1px solid transparent;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            color: var(--text-main);
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .modern-input::placeholder { color: #94a3b8; }
+        .modern-input:focus {
+            background-color: var(--surface-card);
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            outline: none;
+        }
+
+        /* 팀 선택 칩 (Chips) */
+        .chip-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .btn-check + .chip-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 8px;
+            background: var(--surface-element);
+            color: var(--text-muted);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+        .btn-check:checked + .chip-label {
+            background: var(--brand-primary-light);
+            color: var(--brand-primary);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: scale(0.98);
+        }
+
+        /* 리스트형 체크박스 */
+        .check-row {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: var(--surface-element);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .check-row:has(input:checked) {
+            background: var(--brand-primary-light);
+        }
+        .check-row .form-check-input {
+            width: 24px;
+            height: 24px;
+            margin-top: 0;
+            margin-right: 12px;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+        }
+        .check-row .form-check-input:checked {
+            background-color: var(--brand-primary);
+            border-color: var(--brand-primary);
+        }
+        .check-row .form-check-label {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-main);
+            cursor: pointer;
+            flex: 1;
+            margin: 0;
+        }
+
+        /* 공통 버튼 */
+        .btn-primary-modern {
+            background-color: var(--brand-primary);
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 16px;
+            width: 100%;
+            border: none;
+            transition: 0.2s;
+            margin-top: 8px;
+        }
+        .btn-primary-modern:hover, .btn-primary-modern:active {
+            background-color: var(--brand-primary-hover);
+            color: #ffffff;
+        }
+
+        /* 로그인 완료 상태 UI */
+        .status-card {
+            background: var(--surface-element);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .badge-status {
+            background: var(--brand-primary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge-team {
+            background: var(--surface-card);
+            color: var(--text-main);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .btn-secondary-modern {
+            background-color: var(--surface-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+        .btn-danger-modern {
+            background-color: var(--error-bg);
+            color: var(--error-color);
+        }
+
+        /* 유틸리티 */
+        .gap-modern { gap: 24px; }
+    </style>
 </head>
 <body th:replace="~{fragments/layout :: layout(~{::section}, false)}">
-<section>
-    <div class="card card-brand">
-        <div class="card-body p-4">
+<section class="mobile-wrapper">
+    <div class="modern-card">
 
-            <!-- 탭 헤더: 서버 사이드로 active 처리 -->
-            <ul class="nav nav-pills mb-3" id="homeTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link"
-                            id="signup-tab"
-                            data-bs-toggle="pill"
-                            data-bs-target="#signup-pane"
-                            type="button" role="tab"
-                            th:classappend="${activeTab}=='login' ? '' : ' active'"
-                            th:attr="aria-selected=${activeTab}=='login' ? 'false' : 'true'">
-                        회원가입
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link"
-                            id="login-tab"
-                            data-bs-toggle="pill"
-                            data-bs-target="#login-pane"
-                            type="button" role="tab"
-                            th:classappend="${activeTab}=='login' ? ' active' : ''"
-                            th:attr="aria-selected=${activeTab}=='login' ? 'true' : 'false'">
-                        로그인
-                    </button>
-                </li>
-            </ul>
+        <ul class="nav segmented-control" id="homeTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link"
+                        id="signup-tab"
+                        data-bs-toggle="pill"
+                        data-bs-target="#signup-pane"
+                        type="button" role="tab"
+                        th:classappend="${activeTab}=='login' ? '' : ' active'"
+                        th:attr="aria-selected=${activeTab}=='login' ? 'false' : 'true'">
+                    회원가입
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link"
+                        id="login-tab"
+                        data-bs-toggle="pill"
+                        data-bs-target="#login-pane"
+                        type="button" role="tab"
+                        th:classappend="${activeTab}=='login' ? ' active' : ''"
+                        th:attr="aria-selected=${activeTab}=='login' ? 'true' : 'false'">
+                    로그인
+                </button>
+            </li>
+        </ul>
 
-            <div class="tab-content">
-                <!-- 회원가입 -->
-                <div class="tab-pane fade"
-                     id="signup-pane"
-                     role="tabpanel" aria-labelledby="signup-tab"
-                     th:classappend="${activeTab}=='login' ? '' : ' show active'">
-                    <form th:action="@{/home/signup}" method="post" th:object="${signup}">
-                        <div class="row g-3">
-                            <div class="col-12 col-md-6">
-                                <label class="form-label">성함</label>
-                                <input type="text" th:field="*{name}" class="form-control" placeholder="홍길동" required/>
+        <div class="tab-content">
+            <div class="tab-pane fade"
+                 id="signup-pane"
+                 role="tabpanel" aria-labelledby="signup-tab"
+                 th:classappend="${activeTab}=='login' ? '' : ' show active'">
+                <form th:action="@{/home/signup}" method="post" th:object="${signup}">
+                    <div class="d-flex flex-column gap-modern">
+
+                        <div>
+                            <label class="input-label">이름</label>
+                            <input type="text" th:field="*{name}" class="modern-input" placeholder="홍길동" required/>
+                        </div>
+
+                        <div>
+                            <label class="input-label">응원팀</label>
+                            <div class="chip-grid">
+                                <th:block th:each="team : ${teams}">
+                                    <input type="radio" class="btn-check" th:id="${'s-team-' + team.name()}"
+                                           th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off"
+                                           required/>
+                                    <label class="chip-label" th:for="${'s-team-' + team.name()}"
+                                           th:text="${team.displayName}"></label>
+                                </th:block>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="input-label mb-2">알림 설정</label>
+                            <label class="check-row" for="s-opt2">
+                                <input class="form-check-input" type="checkbox" th:field="*{notifyRainAlert}" id="s-opt2"/>
+                                <span class="form-check-label">우천 취소 알림 ☔</span>
+                            </label>
+                            <label class="check-row" for="s-opt3">
+                                <input class="form-check-input" type="checkbox" th:field="*{notifyRealTimeAlert}" id="s-opt3"/>
+                                <span class="form-check-label">실시간 역전/동점 알림 🚀</span>
+                            </label>
+                            <label class="check-row" for="s-opt1">
+                                <input class="form-check-input" type="checkbox" th:field="*{notifyGameAnalysis}" id="s-opt1"/>
+                                <span class="form-check-label">AI 경기 분석 레포트 🧠</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-primary-modern">가입하기</button>
+                    </div>
+
+                    <input type="text" name="website" id="website"
+                           style="display:none !important; visibility:hidden; position:absolute; left:-9999px;"
+                           autocomplete="off" tabindex="-1" aria-hidden="true"/>
+                </form>
+            </div>
+
+            <div class="tab-pane fade"
+                 id="login-pane"
+                 role="tabpanel" aria-labelledby="login-tab"
+                 th:classappend="${activeTab}=='login' ? ' show active' : ''">
+
+                <div th:if="${member != null}" class="status-card">
+                    <div class="d-flex align-items-center mb-3 gap-2">
+                        <span class="badge-status">로그인 완료</span>
+                    </div>
+                    <div class="mb-4">
+                        <h4 class="fw-bold mb-1"><span th:text="${member.name}">홍길동</span>님, 환영합니다!</h4>
+                        <div class="d-flex align-items-center gap-2 mt-2">
+                            <span class="text-muted" style="font-size: 14px;">나의 응원팀</span>
+                            <span class="badge-team" th:text="${member.supportTeam.displayName}">한화</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2">
+                        <a class="btn-primary-modern btn-secondary-modern w-100 text-center text-decoration-none" th:href="@{/home/preferences}">
+                            응원팀 / 알림 설정
+                        </a>
+                        <form th:action="@{/home/logout}" method="post" class="m-0">
+                            <button type="submit" class="btn-primary-modern btn-danger-modern w-100 border-0">로그아웃</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div th:if="${member == null}">
+                    <div class="alert alert-danger border-0 rounded-4" style="background-color: var(--error-bg); color: var(--error-color);" th:if="${loginError}" th:text="${loginError}"></div>
+
+                    <form th:action="@{/home/login}" method="post" th:object="${login}">
+                        <div class="d-flex flex-column gap-modern">
+                            <div>
+                                <label class="input-label">이름</label>
+                                <input type="text" th:field="*{name}" class="modern-input" placeholder="홍길동" required/>
                             </div>
 
-                            <div class="col-12">
-                                <label class="form-label d-block">응원팀</label>
-                                <div class="d-flex flex-wrap gap-2 mt-1">
+                            <div>
+                                <label class="input-label">응원팀</label>
+                                <div class="chip-grid">
                                     <th:block th:each="team : ${teams}">
-                                        <input type="radio" class="btn-check" th:id="${'s-team-' + team.name()}"
-                                               th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off"
-                                               required/>
-                                        <label class="team-chip" th:for="${'s-team-' + team.name()}"
-                                               th:text="${team.displayName}"></label>
+                                        <input type="radio" class="btn-check" th:id="${'l-team-' + team.name()}"
+                                               th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off" required/>
+                                        <label class="chip-label" th:for="${'l-team-' + team.name()}" th:text="${team.displayName}"></label>
                                     </th:block>
                                 </div>
                             </div>
 
-                            <!-- 알림 수신 여부 -->
-                            <div class="col-12">
-                                <div class="row g-3">
-                                    <div class="col-12 col-md-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox"
-                                                   th:field="*{notifyRainAlert}" id="s-opt2"/>
-                                            <label class="form-check-label" for="s-opt2">우천 취소 알림 ☔</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox"
-                                                   th:field="*{notifyRealTimeAlert}" id="s-opt3"/>
-                                            <label class="form-check-label" for="s-opt3">실시간 역전/동점 알림 🚀</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-md-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox"
-                                                   th:field="*{notifyGameAnalysis}" id="s-opt1"/>
-                                            <label class="form-check-label" for="s-opt1">AI 경기 분석 레포트 🧠</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-12 d-flex gap-2">
-                                <button type="submit" class="btn btn-primary">가입하기</button>
-                            </div>
+                            <button type="submit" class="btn-primary-modern">로그인</button>
                         </div>
-                        <!-- honeypot: 봇 탐지용 숨김 필드 (사람 눈에 보이지 않음) -->
-                        <input type="text" name="website" id="website"
-                               style="display:none !important; visibility:hidden; position:absolute; left:-9999px;"
-                               autocomplete="off" tabindex="-1" aria-hidden="true"/>
                     </form>
                 </div>
-
-                <!-- 로그인 -->
-                <div class="tab-pane fade"
-                     id="login-pane"
-                     role="tabpanel" aria-labelledby="login-tab"
-                     th:classappend="${activeTab}=='login' ? ' show active' : ''">
-
-                    <!-- ✅ 로그인 성공 상태 (모바일 최적화) -->
-<div th:if="${member != null}" class="alert alert-success login-status mb-3">
-  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-2">
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-      <span class="badge bg-success">로그인됨</span>
-      <div class="who fw-semibold">
-        <span th:text="${member.name}">홍길동</span>
-        <span class="text-muted">님 ·</span>
-        <span class="badge text-bg-light"
-              th:text="${member.supportTeam.displayName}">한화</span>
-      </div>
-    </div>
-
-    <!-- actions: 모바일은 세로(풀폭), md↑는 가로 정렬 -->
-    <div class="actions d-grid gap-2 w-100 w-md-auto ms-md-auto">
-      <a class="btn btn-outline-secondary btn-sm" th:href="@{/home/preferences}">
-        응원팀/알림 설정
-      </a>
-      <form th:action="@{/home/logout}" method="post" class="m-0">
-        <button type="submit" class="btn btn-outline-danger btn-sm w-100 w-md-auto">로그아웃</button>
-      </form>
-    </div>
-  </div>
-</div>
-
-<style>
-/* 모바일 가독성 향상 */
-.login-status .who { line-height: 1.2; white-space: nowrap; }
-/* 버튼 전체폭(모바일) */
-@media (max-width: 576px) {
-  .login-status .actions { grid-template-columns: 1fr; }
-}
-/* 가로 정렬(md+) */
-@media (min-width: 768px) {
-  .login-status .actions { display: flex !important; gap: .5rem; }
-}
-</style>
-
-                    <!-- 로그인 폼 (로그인 전) -->
-                    <div th:if="${member == null}">
-                        <!-- 실패 시 폼 상단 경고 -->
-                        <div class="alert alert-danger mb-3" th:if="${loginError}" th:text="${loginError}"></div>
-
-                        <form th:action="@{/home/login}" method="post" th:object="${login}">
-                            <div class="row g-3">
-                                <div class="col-12 col-md-6">
-                                    <label class="form-label">이름</label>
-                                    <input type="text" th:field="*{name}" class="form-control" placeholder="홍길동"
-                                           required/>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label d-block">응원 팀</label>
-                                    <div class="d-flex flex-wrap gap-2 mt-1">
-                                        <th:block th:each="team : ${teams}">
-                                            <input type="radio" class="btn-check" th:id="${'l-team-' + team.name()}"
-                                                   th:field="*{supportTeam}" th:value="${team.name()}"
-                                                   autocomplete="off" required/>
-                                            <label class="team-chip" th:for="${'l-team-' + team.name()}"
-                                                   th:text="${team.displayName}"></label>
-                                        </th:block>
-                                    </div>
-                                </div>
-
-                                <div class="col-12 d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary">로그인</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
             </div>
-
-            <!-- 🔔 로그인 실패 토스트 (팝업) -->
-            <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100;" th:if="${loginError}">
-                <div id="loginErrorToast" class="toast text-bg-danger" role="alert" aria-live="assertive"
-                     aria-atomic="true">
-                    <div class="toast-header">
-                        <strong class="me-auto">로그인 실패</strong>
-                        <small>지금</small>
-                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                    <div class="toast-body" th:text="${loginError}">일치하는 회원을 찾을 수 없습니다.</div>
-                </div>
-            </div>
-
         </div>
+
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100;" th:if="${loginError}">
+            <div id="loginErrorToast" class="toast text-bg-danger border-0 rounded-4" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header border-0 rounded-top-4 bg-danger text-white">
+                    <strong class="me-auto">로그인 실패</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body bg-danger text-white rounded-bottom-4" th:text="${loginError}">일치하는 회원을 찾을 수 없습니다.</div>
+            </div>
+        </div>
+
     </div>
 </section>
 
-<!-- 토스트만 표시 (탭 전환 JS 없음) -->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
         var hasError = /*[[${loginError} != null]]*/ false;
