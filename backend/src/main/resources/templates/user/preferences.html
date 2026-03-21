@@ -3,57 +3,196 @@
 <head>
     <title>응원팀/알림 설정 · Kbaseball</title>
     <th:block th:replace="~{fragments/layout :: head}"></th:block>
+    <style>
+        /* 모던 UI 공통 변수 (홈 화면과 동일) */
+        :root {
+            --brand-primary: #3b82f6;
+            --brand-primary-hover: #2563eb;
+            --brand-primary-light: #eff6ff;
+            --surface-bg: #f8fafc;
+            --surface-card: #ffffff;
+            --surface-element: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            background-color: var(--surface-bg);
+            color: var(--text-main);
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 모바일 최적화 래퍼 */
+        .mobile-wrapper {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* 메인 카드 레이아웃 */
+        .modern-card {
+            border: none;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            background: var(--surface-card);
+            padding: 32px 20px 24px 20px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        /* 입력 폼 공통 */
+        .input-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        /* 팀 선택 칩 (Chips) */
+        .chip-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 8px;
+        }
+        .btn-check + .chip-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 8px;
+            background: var(--surface-element);
+            color: var(--text-muted);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+        .btn-check:checked + .chip-label {
+            background: var(--brand-primary-light);
+            color: var(--brand-primary);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: scale(0.98);
+        }
+
+        /* 리스트형 체크박스 */
+        .check-row {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: var(--surface-element);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .check-row:has(input:checked) {
+            background: var(--brand-primary-light);
+        }
+        .check-row .form-check-input {
+            width: 24px;
+            height: 24px;
+            margin-top: 0;
+            margin-right: 12px;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+        }
+        .check-row .form-check-input:checked {
+            background-color: var(--brand-primary);
+            border-color: var(--brand-primary);
+        }
+        .check-row .form-check-label {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-main);
+            cursor: pointer;
+            flex: 1;
+            margin: 0;
+        }
+
+        /* 공통 버튼 */
+        .btn-primary-modern {
+            background-color: var(--brand-primary);
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 16px;
+            width: 100%;
+            border: none;
+            transition: 0.2s;
+            display: inline-block;
+        }
+        .btn-primary-modern:hover, .btn-primary-modern:active {
+            background-color: var(--brand-primary-hover);
+            color: #ffffff;
+        }
+        .btn-secondary-modern {
+            background-color: var(--surface-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary-modern:hover, .btn-secondary-modern:active {
+            background-color: var(--surface-element);
+            color: var(--text-main);
+        }
+
+        /* 유틸리티 */
+        .gap-modern { gap: 32px; }
+    </style>
 </head>
 <body th:replace="~{fragments/layout :: layout(~{::section}, false)}">
-<section>
-    <div class="card card-brand">
-        <div class="card-body p-4">
-            <h2 class="h5 fw-bold mb-3">응원팀/알림 설정</h2>
+<section class="mobile-wrapper">
+    <div class="modern-card">
+        <h2 class="page-title">응원팀 및 알림 설정</h2>
 
-            <form th:action="@{/home/preferences}" method="post" th:object="${pref}">
-                <input type="hidden" th:field="*{id}"/>
+        <form th:action="@{/home/preferences}" method="post" th:object="${pref}">
+            <input type="hidden" th:field="*{id}"/>
 
-                <div class="mb-3">
-                    <label class="form-label d-block">응원 팀</label>
-                    <div class="d-flex flex-wrap gap-2 mt-1">
+            <div class="d-flex flex-column gap-modern">
+                <div>
+                    <label class="input-label">응원 팀</label>
+                    <div class="chip-grid">
                         <th:block th:each="team : ${teams}">
                             <input type="radio" class="btn-check" th:id="${'p-team-' + team.name()}"
                                    th:field="*{supportTeam}" th:value="${team.name()}" autocomplete="off" required/>
-                            <label class="team-chip" th:for="${'p-team-' + team.name()}"
+                            <label class="chip-label" th:for="${'p-team-' + team.name()}"
                                    th:text="${team.displayName}"></label>
                         </th:block>
                     </div>
                 </div>
 
-                <div class="row g-3">
-                    <div class="col-12 col-md-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" th:field="*{notifyGameAnalysis}"
-                                   id="p-opt1"/>
-                            <label class="form-check-label" for="p-opt1">경기 분석 알림</label>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" th:field="*{notifyRainAlert}" id="p-opt2"/>
-                            <label class="form-check-label" for="p-opt2">우천 알림</label>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" th:field="*{notifyRealTimeAlert}"
-                                   id="p-opt3"/>
-                            <label class="form-check-label" for="p-opt3">실시간 역전 알림</label>
-                        </div>
-                    </div>
+                <div>
+                    <label class="input-label">알림 설정</label>
+                    <label class="check-row" for="p-opt1">
+                        <input class="form-check-input" type="checkbox" th:field="*{notifyGameAnalysis}" id="p-opt1"/>
+                        <span class="form-check-label">경기 분석 알림 🧠</span>
+                    </label>
+                    <label class="check-row" for="p-opt2">
+                        <input class="form-check-input" type="checkbox" th:field="*{notifyRainAlert}" id="p-opt2"/>
+                        <span class="form-check-label">우천 취소 알림 ☔</span>
+                    </label>
+                    <label class="check-row" for="p-opt3">
+                        <input class="form-check-input" type="checkbox" th:field="*{notifyRealTimeAlert}" id="p-opt3"/>
+                        <span class="form-check-label">실시간 역전 알림 🚀</span>
+                    </label>
                 </div>
 
-                <div class="mt-4 d-flex gap-2">
-                    <a class="btn btn-outline-secondary" th:href="@{/home(activeTab='login')}">취소</a>
-                    <button type="submit" class="btn btn-primary">저장하기</button>
+                <div class="d-flex flex-column gap-2 mt-2">
+                    <button type="submit" class="btn-primary-modern m-0">저장하기</button>
+                    <a class="btn-primary-modern btn-secondary-modern text-center text-decoration-none m-0" th:href="@{/home(activeTab='login')}">취소</a>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 </section>
 </body>
