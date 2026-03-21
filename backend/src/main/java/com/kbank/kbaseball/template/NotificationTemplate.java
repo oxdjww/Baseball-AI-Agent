@@ -25,6 +25,7 @@ public enum NotificationTemplate {
     ),
     // 웹훅/연동 플로우
     LINK_SUCCESS("텔레그램 연동이 완료되었습니다 ✅\n\n아래 링크에서 로그인하세요 👇\n%s"),
+    ALREADY_LINKED("이미 가입된 텔레그램 계정입니다. 중복 가입은 불가합니다.\n\n기존 계정으로 로그인해주세요 👇\n%s"),
     ACCOUNT_NOT_FOUND("계정을 찾을 수 없습니다. 웹에서 다시 시도해주세요."),
     TOKEN_EXPIRED("가입 정보가 만료되었습니다. 웹에서 다시 가입해주세요."),
     WELCOME_GUIDE("안녕하세요!\n🧢 Kbaseball입니다.\n\n매일 진행되는 야구 경기 알림을 받아보세요! ⚾️\n기능 오작동 및 오류 문의는 아래 링크로 제보해 주세요.\n\n%s\n\n감사합니다."),

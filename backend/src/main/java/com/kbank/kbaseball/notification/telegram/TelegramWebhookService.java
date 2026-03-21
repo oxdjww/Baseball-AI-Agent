@@ -35,6 +35,10 @@ public class TelegramWebhookService {
             String returnUrl = appBaseUrl + "/home?activeTab=login&welcome=true";
             telegramService.sendTemplateMessage(String.valueOf(chatId), linked.memberName(),
                     NotificationTemplate.LINK_SUCCESS, returnUrl);
+        } else if (result instanceof LinkResult.AlreadyLinked) {
+            String loginUrl = appBaseUrl + "/home?activeTab=login";
+            telegramService.sendTemplateMessage(String.valueOf(chatId), "회원",
+                    NotificationTemplate.ALREADY_LINKED, loginUrl);
         } else if (result instanceof LinkResult.TokenExpired) {
             telegramService.sendTemplateMessage(String.valueOf(chatId), "회원", NotificationTemplate.TOKEN_EXPIRED);
         }

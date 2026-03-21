@@ -30,5 +30,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByNameAndSupportTeamAndTelegramId(String name, Team supportTeam, String telegramId);
 
+    boolean existsByTelegramId(String telegramId);
+
     Optional<Member> findByNameAndSupportTeam(String name, Team supportTeam);
 }

@@ -3,6 +3,7 @@ package com.kbank.kbaseball.auth;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kbank.kbaseball.member.Member;
+import com.kbank.kbaseball.member.MemberRepository;
 import com.kbank.kbaseball.member.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ public class TelegramLinkService {
 
     private final StringRedisTemplate redis;
     private final MemberService memberService;
+    private final MemberRepository memberRepository;
     private final ObjectMapper objectMapper;
 
     public String storePendingSignup(PendingMemberData data) {
@@ -66,6 +68,11 @@ public class TelegramLinkService {
         } catch (JsonProcessingException e) {
             log.error("[TelegramLinkService][linkAccount] 역직렬화 실패: {}", e.getMessage());
             return new LinkResult.TokenExpired();
+        }
+
+        if (memberRepository.existsByTelegramId(String.valueOf(telegramUserId))) {
+            log.warn("[TelegramLinkService][linkAccount] 중복 telegramId={}, 가입 차단", telegramUserId);
+            return new LinkResult.AlreadyLinked();
         }
 
         Member saved = memberService.save(
