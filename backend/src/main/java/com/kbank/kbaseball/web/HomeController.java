@@ -49,9 +49,13 @@ public class HomeController {
     // GET /home
     @GetMapping
     public String home(@RequestParam(defaultValue = "signup") String activeTab,
+                       @RequestParam(required = false) String welcome,
                        HttpSession session,
                        Model model) {
         model.addAttribute("activeTab", activeTab);
+        if ("true".equals(welcome)) {
+            model.addAttribute("welcomeMsg", "텔레그램 연동이 완료되었습니다! 로그인해보세요 🎉");
+        }
         model.addAttribute("teams", Team.values());
         if (!model.containsAttribute("signup")) model.addAttribute("signup", new SignupForm());
         if (!model.containsAttribute("login")) model.addAttribute("login", new LoginForm());

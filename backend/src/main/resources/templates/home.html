@@ -362,6 +362,16 @@
             </div>
         </div>
 
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100;" th:if="${welcomeMsg}">
+            <div id="welcomeToast" class="toast text-bg-success border-0 rounded-4" role="alert" aria-live="polite" aria-atomic="true">
+                <div class="toast-header border-0 rounded-top-4 bg-success text-white">
+                    <strong class="me-auto">연동 완료</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body bg-success text-white rounded-bottom-4" th:text="${welcomeMsg}">텔레그램 연동이 완료되었습니다! 로그인해보세요 🎉</div>
+            </div>
+        </div>
+
     </div>
 </section>
 
@@ -373,6 +383,14 @@
             if (toastEl) {
                 var toast = new bootstrap.Toast(toastEl, {delay: 3500});
                 toast.show();
+            }
+        }
+        var hasWelcome = /*[[${welcomeMsg} != null]]*/ false;
+        if (hasWelcome) {
+            var welcomeEl = document.getElementById('welcomeToast');
+            if (welcomeEl) {
+                var welcomeToast = new bootstrap.Toast(welcomeEl, {delay: 5000});
+                welcomeToast.show();
             }
         }
     });

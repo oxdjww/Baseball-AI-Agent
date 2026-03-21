@@ -5,6 +5,7 @@ import com.kbank.kbaseball.auth.TelegramLinkService;
 import com.kbank.kbaseball.template.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +15,9 @@ public class TelegramWebhookService {
 
     private final TelegramLinkService telegramLinkService;
     private final TelegramService telegramService;
+
+    @Value("${app.base-url}")
+    private String appBaseUrl;
 
     public void handle(String text, Long telegramUserId, Long chatId) {
         if (text.startsWith("/start ")) {
@@ -28,7 +32,9 @@ public class TelegramWebhookService {
         LinkResult result = telegramLinkService.linkAccount(token, telegramUserId);
 
         if (result instanceof LinkResult.Linked linked) {
-            telegramService.sendTemplateMessage(String.valueOf(chatId), linked.memberName(), NotificationTemplate.LINK_SUCCESS);
+            String returnUrl = appBaseUrl + "/home?activeTab=login&welcome=true";
+            telegramService.sendTemplateMessage(String.valueOf(chatId), linked.memberName(),
+                    NotificationTemplate.LINK_SUCCESS, returnUrl);
         } else if (result instanceof LinkResult.TokenExpired) {
             telegramService.sendTemplateMessage(String.valueOf(chatId), "회원", NotificationTemplate.TOKEN_EXPIRED);
         }
