@@ -142,6 +142,17 @@ public class HomeController {
         return "user/preferences";
     }
 
+    // 회원탈퇴 (soft delete)
+    @PostMapping("/withdraw")
+    public String withdraw(HttpSession session, RedirectAttributes ra) {
+        Object val = session.getAttribute("memberId");
+        if (val == null) return "redirect:/home?activeTab=login";
+        memberRepository.softDeleteById(Long.valueOf(val.toString()));
+        session.invalidate();
+        ra.addFlashAttribute("withdrawMsg", "탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.");
+        return "redirect:/home";
+    }
+
     // ✅ 응원팀/알림 저장
     @PostMapping("/preferences")
     public String savePreferences(@ModelAttribute("pref") PrefForm form,

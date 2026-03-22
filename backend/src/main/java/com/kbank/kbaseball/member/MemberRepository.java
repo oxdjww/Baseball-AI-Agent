@@ -33,4 +33,9 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     boolean existsByTelegramId(String telegramId);
 
     List<Member> findByNameAndSupportTeam(String name, Team supportTeam);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Member m SET m.deleted = true WHERE m.id = :id")
+    void softDeleteById(@Param("id") Long id);
 }

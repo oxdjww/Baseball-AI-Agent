@@ -5,6 +5,7 @@ import com.kbank.kbaseball.domain.team.Team;
 import com.kbank.kbaseball.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
@@ -12,6 +13,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SQLRestriction("deleted = false")
 public class Member extends BaseEntity {
 
     @Id
@@ -35,4 +37,7 @@ public class Member extends BaseEntity {
 
     @Builder.Default
     private boolean notifyRealTimeAlert = false;
+
+    @Builder.Default
+    private boolean deleted = false;
 }

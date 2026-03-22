@@ -155,6 +155,48 @@
 
         /* 유틸리티 */
         .gap-modern { gap: 32px; }
+
+        /* 회원탈퇴 버튼 */
+        .btn-danger-modern {
+            background-color: transparent;
+            color: #ef4444;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 12px;
+            padding: 14px;
+            width: 100%;
+            border: 1px solid #fecaca;
+            transition: 0.2s;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .btn-danger-modern:hover, .btn-danger-modern:active {
+            background-color: #fef2f2;
+            border-color: #ef4444;
+            color: #dc2626;
+        }
+
+        /* 탈퇴 모달 */
+        .withdraw-modal .modal-content {
+            border: none;
+            border-radius: 20px;
+        }
+        .withdraw-modal .modal-body {
+            padding: 32px 24px 24px;
+            text-align: center;
+        }
+        .withdraw-modal .modal-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+        .withdraw-modal .modal-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
     </style>
 </head>
 <body th:replace="~{fragments/layout :: layout(~{::section}, false)}">
@@ -197,6 +239,10 @@
                 </div>
 
                 <div class="d-flex flex-column gap-2 mt-2">
+                    <button type="button" class="btn-danger-modern m-0"
+                            data-bs-toggle="modal" data-bs-target="#withdrawModal">
+                        회원탈퇴
+                    </button>
                     <button type="submit" class="btn-primary-modern m-0">저장하기</button>
                     <a class="btn-primary-modern btn-secondary-modern text-center text-decoration-none m-0" th:href="@{/home(activeTab='login')}">취소</a>
                 </div>
@@ -204,5 +250,31 @@
         </form>
     </div>
 </section>
+
+<!-- 회원탈퇴 확인 모달 -->
+<div class="modal fade withdraw-modal" id="withdrawModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 340px; margin: 0 auto; padding: 16px;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="modal-title">정말 탈퇴하시겠습니까?</div>
+                <p class="modal-desc">
+                    탈퇴 시 모든 경기 알림이 즉시 중단됩니다.<br>
+                    재가입은 텔레그램 봇을 통해 다시 연동해야 합니다.
+                </p>
+                <div class="d-flex flex-column gap-2">
+                    <form th:action="@{/home/withdraw}" method="post">
+                        <button type="submit" class="btn-danger-modern m-0" style="border-color: #ef4444;">
+                            탈퇴하기
+                        </button>
+                    </form>
+                    <button type="button" class="btn-primary-modern btn-secondary-modern m-0"
+                            data-bs-dismiss="modal">
+                        취소
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
