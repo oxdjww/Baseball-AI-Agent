@@ -99,17 +99,18 @@ public class HomeController {
     public String login(@ModelAttribute("login") LoginForm form,
                         HttpSession session,
                         RedirectAttributes ra) {
-        return memberRepository.findByNameAndSupportTeam(form.getName(), form.getSupportTeam())
-                .map(m -> {
-                    session.setAttribute("memberId", m.getId());
-                    return "redirect:/home?activeTab=login"; // 로그인 탭으로
-                })
-                .orElseGet(() -> {
-                    ra.addFlashAttribute("loginError", "일치하는 회원을 찾을 수 없습니다.");
-                    ra.addFlashAttribute("activeTab", "login");
-                    ra.addFlashAttribute("login", form); // 입력값 유지(선택)
-                    return "redirect:/home?activeTab=login";
-                });
+        var members = memberRepository.findByNameAndSupportTeam(form.getName(), form.getSupportTeam());
+        if (members.size() == 1) {
+            session.setAttribute("memberId", members.get(0).getId());
+            return "redirect:/home?activeTab=login";
+        }
+        String errorMsg = members.isEmpty()
+                ? "일치하는 회원을 찾을 수 없습니다."
+                : "동일 이름·팀 회원이 여러 명입니다. 관리자에게 문의하세요.";
+        ra.addFlashAttribute("loginError", errorMsg);
+        ra.addFlashAttribute("activeTab", "login");
+        ra.addFlashAttribute("login", form);
+        return "redirect:/home?activeTab=login";
     }
 
     // 로그아웃

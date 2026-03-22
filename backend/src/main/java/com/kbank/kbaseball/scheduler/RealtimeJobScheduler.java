@@ -30,7 +30,7 @@ public class RealtimeJobScheduler {
      */
     // @Scheduled(cron = "0 0/3 13-22 * * TUE-SUN", zone = "Asia/Seoul")
     // 포스트시즌 시간표 적용
-    @Scheduled(cron = "0 0/3 13-22 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0/3 13-23 * * *", zone = "Asia/Seoul")
     public void runRealTimeAlert() {
         log.info("[RealtimeJobScheduler][runRealTimeAlert] 실행 시도");
         try {

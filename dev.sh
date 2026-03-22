@@ -34,14 +34,20 @@ export SPRING_DATA_REDIS_PORT=6379
 
 # ── 공통: 백엔드 프로세스 종료 ────────────────────────────────────────────────
 kill_backend() {
-  local pid
-  pid=$(lsof -ti:8080 2>/dev/null || true)
-  if [ -n "$pid" ]; then
-    kill -9 "$pid"
-    warn "기존 백엔드 종료 (PID: $pid)"
-  else
-    info "실행 중인 백엔드 없음"
-  fi
+  # lsof -ti:8080 은 Chrome(접속 클라이언트) + Java(서버) 모두 반환할 수 있으므로
+  # java 프로세스만 골라서 종료
+  local killed=0
+  while IFS= read -r pid; do
+    [ -z "$pid" ] && continue
+    local comm
+    comm=$(ps -p "$pid" -o comm= 2>/dev/null || true)
+    if [[ "$comm" == *java* ]]; then
+      kill -9 "$pid" 2>/dev/null || true
+      warn "기존 백엔드 종료 (PID: $pid)"
+      killed=1
+    fi
+  done < <(lsof -ti:8080 2>/dev/null || true)
+  [ "$killed" -eq 0 ] && info "실행 중인 백엔드 없음"
   # app.pid 정리
   [ -f "$SCRIPT_DIR/app.pid" ] && rm -f "$SCRIPT_DIR/app.pid"
 }
@@ -50,7 +56,9 @@ kill_backend() {
 start_backend() {
   step "백엔드 기동 중 (Ctrl+C로 종료)..."
   cd "$BACKEND_DIR"
-  exec ./gradlew bootRun
+  # Gradle 데몬이 환경변수를 캐시할 수 있으므로, Redis/DB 호스트를 args로 명시 전달
+  exec ./gradlew bootRun \
+    --args='--spring.data.redis.host=localhost --spring.data.redis.port=6379'
 }
 
 # ── stop ──────────────────────────────────────────────────────────────────────
