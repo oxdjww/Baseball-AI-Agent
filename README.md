@@ -150,7 +150,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Cron as RealtimeJobScheduler<br/>cron: 0 0/3 13-22 * * *
+    participant Cron as RealtimeJobScheduler<br/>cron: 0 0/3 13-23 * * *
     participant Batch as Spring Batch<br/>realTimeAlertJob
     participant Service as GameAlertService
     participant Naver as NaverSportsClient
@@ -249,37 +249,120 @@ sequenceDiagram
 
 ---
 
-### 5. 장애 관제 (AOP + Spring Event)
+### 5. 장애 관제 (AOP + Spring Event + Telegram)
+
+서비스 계층 전체에 AOP를 적용해 예외를 가로채고, Spring Event 파이프라인을 통해 관리자 Telegram으로 실시간 관제 메시지를 발송합니다.
+`@RestController` 계층 예외는 `GlobalExceptionHandler`가 별도로 커버하여 누락 없이 포착합니다.
 
 ```mermaid
-graph LR
-    subgraph Services["@Service 계층 (전체)"]
-        S1[GameAlertService]
-        S2[RainAlertTasklet]
-        S3[TelegramLinkService]
-        S4[MemberService]
-        S5[...]
+flowchart TD
+    subgraph AppLayer["애플리케이션 계층"]
+        SVC["@Service 메서드\nGameAlertService · TelegramLinkService\nMemberService · RainAlertTasklet ..."]
+        CTL["@RestController 메서드\nGlobalExceptionHandler 커버"]
     end
 
-    subgraph AOP["MonitoringAspect (@Around)"]
-        CHK{callDepth == 1\n최외곽 호출?}
+    subgraph AOPLayer["AOP 관제 계층"]
+        ASPECT["MonitoringAspect\n@Around — 전체 Service 계층\n(notification 패키지 제외 — 무한루프 방지)"]
+        DEPTH{"callDepth == 1?\nCGLIB 중첩 방지"}
     end
 
-    subgraph Event["Spring Event"]
-        EVT[MonitoringErrorEvent\nfeatureName · errorMessage\nstackTrace · contextData]
+    subgraph EventLayer["Spring Event 파이프라인"]
+        EVT["MonitoringErrorEvent\nfeatureName: ClassName.method\nerrorMessage · stackTrace 5 frames\ncontextData: 메서드 인자"]
+        LISTENER["MonitoringEventListener\n@EventListener"]
     end
 
-    subgraph Listener["MonitoringEventListener"]
-        FMT[HTML 포맷팅\nHtmlUtils.htmlEscape\n스택 상위 5 프레임]
-        SEND[TelegramService\n관리자 DM 발송]
+    subgraph TelegramLayer["Telegram 관제 채널"]
+        MSG["🚨 SYSTEM CRITICAL\n📛 기능: {className.method}\n💬 오류: {escaped message}\n📋 인자: {arg0, arg1, ...}\n🔍 스택: {top 5 frames}\n⏰ {KST timestamp}"]
+        TG["TelegramService\nsendPlainMessage(adminId, html)"]
+        API["Telegram Bot API\n→ 관리자 DM"]
     end
 
-    Services -->|예외 발생| AOP
-    CHK -->|Yes| EVT
-    CHK -->|No, rethrow| Services
-    EVT --> Listener
-    FMT --> SEND
+    SVC -->|"RuntimeException 발생"| ASPECT
+    ASPECT --> DEPTH
+    DEPTH -->|"Yes — 이벤트 발행"| EVT
+    DEPTH -->|"No — rethrow"| SVC
+    CTL -->|"미처리 예외"| GEXH["GlobalExceptionHandler\nAOP 미처리 여부 스택 검사"]
+    GEXH -->|"AOP 미처리 시"| EVT
+    EVT --> LISTENER
+    LISTENER -->|"HtmlUtils.htmlEscape\n특수문자 이스케이프"| MSG
+    MSG --> TG
+    TG --> API
 ```
+
+#### 관제 메시지 포맷 예시
+
+```
+[🚨 SYSTEM CRITICAL]
+📛 기능: GameAlertService.processAlertsFor
+💬 오류: Read timed out executing GET https://api-gw.sports.naver.com/...
+📋 인자: {arg0=2026-05-10}
+🔍 스택:
+  NaverSportsClient.fetchScheduledGames(NaverSportsClient.java:58)
+  GameAlertService.processAlertsFor(GameAlertService.java:42)
+  ...
+⏰ 2026-05-10 18:03:21 KST
+```
+
+---
+
+### 6. OpenClaw 기반 장애탐지 체계
+
+**OpenClaw**는 이 프로젝트와 함께 운영되는 Claude Code AI 에이전트 워크스페이스입니다.
+Telegram 관제톡을 수신한 뒤 코드 탐색·로그 분석·Notion 기록까지 자율 수행합니다.
+
+```mermaid
+flowchart TD
+    subgraph Trigger["장애 트리거"]
+        TG_MSG["Telegram 관제 메시지\n🚨 SYSTEM CRITICAL\nfeatureName · errorMessage · stackTrace"]
+    end
+
+    subgraph OpenClaw["OpenClaw AI Agent (Claude Code)"]
+        direction TB
+        RECV["관제톡 내용 파악\nfeatureName · args 파싱"]
+        ANALYSIS["원인 분석\n코드 탐색 / 로그 조회\n재현 경로 파악"]
+        JUDGE{"심각도 판단"}
+        HOTFIX["즉시 수정\n코드 패치 → 커밋 → 배포 안내"]
+        DEFER["이슈 등록 및 문서화\n재발 방지 계획 수립"]
+    end
+
+    subgraph Tools["활용 수단"]
+        NOTION["Notion MCP\n장애 로그 자동 기록\n(TroubleShooting DB)"]
+        SSH["SSH / dev.sh\n서버 상태 점검\n로그 tail · 프로세스 확인"]
+        CODE["코드베이스 탐색\nGrep · Read · Edit"]
+        TG_REPLY["Telegram 추가 알림\n상황 공유 · 해결 여부 보고"]
+    end
+
+    TG_MSG --> RECV
+    RECV --> ANALYSIS
+    ANALYSIS --> JUDGE
+    JUDGE -->|"Critical — 즉각 대응"| HOTFIX
+    JUDGE -->|"Low — 추후 처리"| DEFER
+    HOTFIX --> CODE
+    HOTFIX --> TG_REPLY
+    DEFER --> NOTION
+    ANALYSIS --> SSH
+    ANALYSIS --> CODE
+    HOTFIX --> NOTION
+```
+
+#### OpenClaw 워크스페이스 파일 구조
+
+| 파일 | 역할 |
+|------|------|
+| `AGENTS.md` | 에이전트 세션 동작 규칙 — 메모리 관리, 그룹챗 예절, Heartbeat 활용법 |
+| `SOUL.md` | 에이전트 핵심 가치관 및 행동 원칙 |
+| `IDENTITY.md` | 에이전트 이름 · 캐릭터 · 시그니처 정의 |
+| `USER.md` | 사용자 프로필 — 이름, 타임존, 선호 스타일 |
+| `HEARTBEAT.md` | 주기적 점검 태스크 — 서버 상태, 이슈 배치 점검 |
+| `TOOLS.md` | 로컬 환경 도구 메모 — SSH 호스트, 디바이스 정보 |
+
+#### 활성 통합
+
+| 통합 | 용도 |
+|------|------|
+| **Notion MCP** | 장애 로그·개발 기록 자동 작성 |
+| **GitHub MCP** | 이슈·PR 조회 및 코멘트 |
+| **OpenClaw Heartbeat** | 주기적 서버 관제·로그 점검 |
 
 ---
 
@@ -305,6 +388,7 @@ graph LR
 | Key Pattern | TTL | Purpose |
 |-------------|-----|---------|
 | `pending:signup:{token}` | 15m | 임시 회원 데이터 (Lazy Registration) |
+| `linked:signup:{token}` | 10m | Telegram 연동 완료 마커 (만료 페이지 오판 방지) |
 | `game:leader:{gameId}` | 24h | 현재 리더 추적 (역전 감지용 이전값 비교) |
 | `game:ended:{gameId}` | 24h | 경기 종료 처리 중복 방지 (SETNX) |
 
@@ -326,33 +410,6 @@ graph LR
 
 - 단일 batch.service 구조 (`com.kbank.baa`)
 - 인메모리 상태 관리
-
----
-
-## AI Agent Workspace (OpenClaw)
-
-이 프로젝트는 **OpenClaw** 기반 AI 에이전트 워크스페이스를 함께 운영합니다.
-Claude가 세션 간 컨텍스트를 파일로 유지하며, 서버 관제·문서 관리·Notion 연동 등을 자율 수행합니다.
-
-### Workspace 구조
-
-| 파일 | 역할 |
-|------|------|
-| `AGENTS.md` | 에이전트 세션 동작 규칙 — 메모리 관리, 그룹챗 예절, Heartbeat 활용법 |
-| `SOUL.md` | 에이전트 핵심 가치관 및 행동 원칙 |
-| `IDENTITY.md` | 에이전트 이름 · 캐릭터 · 시그니처 정의 |
-| `USER.md` | 사용자 프로필 — 이름, 타임존, 선호 스타일 |
-| `HEARTBEAT.md` | 주기적 점검 태스크 목록 (서버 상태, 이슈 배치 점검) |
-| `BOOTSTRAP.md` | 최초 세션 초기화 절차 |
-| `TOOLS.md` | 로컬 환경 도구 메모 — SSH 호스트, 디바이스 정보 |
-
-### 활성 통합
-
-| 통합 | 용도 |
-|------|------|
-| **Notion MCP** | 개발 로그·문서 자동 작성 |
-| **GitHub MCP** | 이슈·PR 조회 및 코멘트 |
-| **OpenClaw Heartbeat** | 주기적 서버 관제·로그 점검 |
 
 ---
 
