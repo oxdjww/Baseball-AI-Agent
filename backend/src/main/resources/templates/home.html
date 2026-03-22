@@ -282,7 +282,7 @@
                                 <input class="form-check-input" type="checkbox" th:field="*{notifyRealTimeAlert}" id="s-opt3"/>
                                 <span class="form-check-label">실시간 역전/동점 알림 🚀</span>
                             </label>
-                            <label class="check-row" for="s-opt1">
+                            <label class="check-row" for="s-opt1" th:if="${aiAnalysisEnabled}">
                                 <input class="form-check-input" type="checkbox" th:field="*{notifyGameAnalysis}" id="s-opt1"/>
                                 <span class="form-check-label">AI 경기 분석 레포트 🧠</span>
                             </label>

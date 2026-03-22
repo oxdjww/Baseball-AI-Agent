@@ -2,6 +2,7 @@ package com.kbank.kbaseball.web;
 
 import com.kbank.kbaseball.auth.PendingMemberData;
 import com.kbank.kbaseball.auth.TelegramLinkService;
+import com.kbank.kbaseball.config.featuretoggle.FeatureToggleService;
 import com.kbank.kbaseball.member.Member;
 import com.kbank.kbaseball.member.MemberRepository;
 import com.kbank.kbaseball.domain.team.Team;
@@ -20,6 +21,7 @@ public class HomeController {
 
     private final MemberRepository memberRepository;
     private final TelegramLinkService telegramLinkService;
+    private final FeatureToggleService featureToggleService;
 
     // DTO들
     @Data
@@ -56,6 +58,7 @@ public class HomeController {
         if ("true".equals(welcome)) {
             model.addAttribute("welcomeMsg", "텔레그램 연동이 완료되었습니다! 로그인해보세요 🎉");
         }
+        model.addAttribute("aiAnalysisEnabled", featureToggleService.isEnabled(FeatureToggleService.AI_ANALYSIS));
         model.addAttribute("teams", Team.values());
         if (!model.containsAttribute("signup")) model.addAttribute("signup", new SignupForm());
         if (!model.containsAttribute("login")) model.addAttribute("login", new LoginForm());
@@ -134,6 +137,7 @@ public class HomeController {
 
         model.addAttribute("pref", pref);
         model.addAttribute("teams", Team.values());
+        model.addAttribute("aiAnalysisEnabled", featureToggleService.isEnabled(FeatureToggleService.AI_ANALYSIS));
         return "user/preferences";
     }
 

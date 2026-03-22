@@ -173,7 +173,7 @@
 
                 <div>
                     <label class="input-label">알림 설정</label>
-                    <label class="check-row" for="p-opt1">
+                    <label class="check-row" for="p-opt1" th:if="${aiAnalysisEnabled}">
                         <input class="form-check-input" type="checkbox" th:field="*{notifyGameAnalysis}" id="p-opt1"/>
                         <span class="form-check-label">경기 분석 알림 🧠</span>
                     </label>

@@ -2,6 +2,7 @@ package com.kbank.kbaseball.web;
 
 import com.kbank.kbaseball.auth.PendingMemberData;
 import com.kbank.kbaseball.auth.TelegramLinkService;
+import com.kbank.kbaseball.config.featuretoggle.FeatureToggleService;
 import com.kbank.kbaseball.domain.team.Team;
 import com.kbank.kbaseball.member.MemberRepository;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,9 @@ class HomeControllerTest {
 
     @MockBean
     TelegramLinkService telegramLinkService;
+
+    @MockBean
+    FeatureToggleService featureToggleService;
 
     @Test
     void signup_validForm_redirectsToSignupSuccess() throws Exception {
