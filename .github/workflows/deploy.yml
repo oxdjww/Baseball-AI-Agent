@@ -4,6 +4,16 @@ on:
   push:
     branches:
       - dev
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'AGENTS.md'
+      - 'SOUL.md'
+      - 'IDENTITY.md'
+      - 'USER.md'
+      - 'HEARTBEAT.md'
+      - 'TOOLS.md'
+      - 'BOOTSTRAP.md'
 
 jobs:
   build-and-push:

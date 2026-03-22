@@ -425,6 +425,8 @@ flowchart TD
 
 | 날짜 | 내용 요약 |
 |------|----------|
+| [2026-03-22](docs/daily-logs/2026-03-22.md) | v1 운영 전 점검, 회원탈퇴(soft delete + partial unique index), 관제 구조도 README 상세화, Thymeleaf section 밖 요소 버림 버그 2회 수정 |
+| [2026-03-21](docs/daily-logs/2026-03-21.md) | Home/Preferences UI 모바일 최적화, Member 복합키→단일키 리팩터링, 텔레그램 연동 환영 메시지, signup_success UI 개편 |
 | [2026-03-19](docs/daily-logs/2026-03-19.md) | StandingsAdjuster 도입 — 경기 종료 순위 즉시 보정, 승차 재계산, 단위·통합 테스트 81개 통과 |
 | [2026-03-16](docs/daily-logs/2026-03-16.md) | HikariCP keepalive 설정, TaskScheduler 타임아웃 개선, TelegramWebhookRegistrar NPE 수정, OpenClaw 워크스페이스 초기화 |
 | [2026-03-15](docs/daily-logs/2026-03-15.md) | v2 런칭: 관제 시스템, 경기종료 알림 고도화, Vultr 배포, Lazy Registration, 23개 커밋 |
