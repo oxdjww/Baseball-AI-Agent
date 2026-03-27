@@ -25,6 +25,7 @@ public class NoticeController {
     ) {
         String message = request.getMessage();
         telegramService.sendAnnouncementToAllMembers(message);
+
         return ResponseEntity.ok(Map.of(
                 "sentMessage", message
         ));
