@@ -308,41 +308,52 @@ flowchart TD
 ### 6. OpenClaw 기반 장애탐지 체계
 
 **OpenClaw**는 이 프로젝트와 함께 운영되는 Claude Code AI 에이전트 워크스페이스입니다.
-Telegram 관제톡을 수신한 뒤 코드 탐색·로그 분석·Notion 기록까지 자율 수행합니다.
+Spring AOP가 장애를 자동 감지해 Telegram으로 관제톡을 발송하면,
+개발자가 해당 내용을 Telegram 연결 OpenClaw에게 전달하는 것만으로
+코드 탐색·원인 분석·패치·커밋·Notion 기록까지 AI가 자율 수행합니다.
 
 ```mermaid
 flowchart TD
-    subgraph Trigger["장애 트리거"]
-        TG_MSG["Telegram 관제 메시지\n🚨 SYSTEM CRITICAL\nfeatureName · errorMessage · stackTrace"]
+    subgraph SpringBoot["Spring Boot (자동)"]
+        EX["서비스 레이어 예외 발생"]
+        AOP["MonitoringAspect\nAOP 감지 — depth=1 중복방지"]
+        EVT["MonitoringErrorEvent publish\nfeatureName · errorMessage · stackTrace"]
+        TG_SEND["TelegramService\n관제톡 자동 발송"]
+    end
+
+    subgraph Human["개발자 (1회 개입)"]
+        DEV["관제톡 확인 후\nOpenClaw Telegram 채팅에 전달"]
     end
 
     subgraph OpenClaw["OpenClaw AI Agent (Claude Code)"]
         direction TB
         RECV["관제톡 내용 파악\nfeatureName · args 파싱"]
-        ANALYSIS["원인 분석\n코드 탐색 / 로그 조회\n재현 경로 파악"]
+        ANALYSIS["원인 분석\n코드 탐색 / SSH 로그 조회"]
         JUDGE{"심각도 판단"}
-        HOTFIX["즉시 수정\n코드 패치 → 커밋 → 배포 안내"]
-        DEFER["이슈 등록 및 문서화\n재발 방지 계획 수립"]
+        HOTFIX["코드 패치 → commit → push\nCI/CD 자동 배포 트리거"]
+        DEFER["이슈 등록 및 문서화"]
     end
 
-    subgraph Tools["활용 수단"]
+    subgraph Tools["OpenClaw 활용 수단"]
         NOTION["Notion MCP\n장애 로그 자동 기록\n(TroubleShooting DB)"]
-        SSH["SSH / dev.sh\n서버 상태 점검\n로그 tail · 프로세스 확인"]
+        SSH["SSH — netcat.kr\n운영 서버 로그 점검"]
         CODE["코드베이스 탐색\nGrep · Read · Edit"]
-        TG_REPLY["Telegram 추가 알림\n상황 공유 · 해결 여부 보고"]
+        CICD["GitHub Actions\npush 트리거 → Docker Hub → Vultr 배포"]
     end
 
-    TG_MSG --> RECV
+    EX --> AOP --> EVT --> TG_SEND
+    TG_SEND -->|"🚨 SYSTEM CRITICAL"| DEV
+    DEV -->|"관제톡 내용 전달"| RECV
     RECV --> ANALYSIS
+    ANALYSIS --> SSH
+    ANALYSIS --> CODE
     ANALYSIS --> JUDGE
     JUDGE -->|"Critical — 즉각 대응"| HOTFIX
     JUDGE -->|"Low — 추후 처리"| DEFER
     HOTFIX --> CODE
-    HOTFIX --> TG_REPLY
-    DEFER --> NOTION
-    ANALYSIS --> SSH
-    ANALYSIS --> CODE
+    HOTFIX --> CICD
     HOTFIX --> NOTION
+    DEFER --> NOTION
 ```
 
 #### OpenClaw 워크스페이스 파일 구조
