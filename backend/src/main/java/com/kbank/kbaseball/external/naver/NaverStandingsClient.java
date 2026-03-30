@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,10 +24,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NaverStandingsClient {
 
-    private static final String STANDINGS_URL =
-            "https://api-gw.sports.naver.com/statistics/categories/kbo/seasons/2026/teams";
-
     private final RestTemplate restTemplate;
+
+    private String buildStandingsUrl() {
+        int year = LocalDate.now().getYear();
+        return "https://api-gw.sports.naver.com/statistics/categories/kbo/seasons/" + year + "/teams";
+    }
 
     @Retryable(retryFor = RestClientException.class,
             maxAttempts = 5,
@@ -34,9 +37,10 @@ public class NaverStandingsClient {
     public KboStandingsResult fetchStandings() {
         log.info("[NaverStandingsClient][fetchStandings] Fetching KBO standings");
 
-        ResponseEntity<JsonNode> resp = restTemplate.getForEntity(STANDINGS_URL, JsonNode.class);
+        String url = buildStandingsUrl();
+        ResponseEntity<JsonNode> resp = restTemplate.getForEntity(url, JsonNode.class);
         JsonNode root = Optional.ofNullable(resp.getBody())
-                .orElseThrow(() -> new RestClientException("API Fetch Failure: " + STANDINGS_URL));
+                .orElseThrow(() -> new RestClientException("API Fetch Failure: " + url));
 
         JsonNode result = root.path("result");
         String gameType = result.path("gameType").asText("REGULAR_SEASON");

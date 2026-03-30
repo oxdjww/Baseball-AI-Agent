@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -16,9 +15,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     public List<Member> findAllSorted() {
-        return memberRepository.findAll().stream()
-                .sorted(Comparator.comparing(Member::getId))
-                .toList();
+        return memberRepository.findAllByOrderByIdAsc();
     }
 
     public Member findByIdOrThrow(Long id) {

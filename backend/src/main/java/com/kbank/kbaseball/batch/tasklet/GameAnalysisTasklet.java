@@ -79,35 +79,39 @@ public class GameAnalysisTasklet {
         log.info("[GameAnalysis][execute] 대상 멤버 수: {}명", targets.size());
 
         for (Member m : targets) {
-            log.info("[GameAnalysis][execute] 회원 검토 → 이름={}, 응원팀={}", m.getName(), m.getSupportTeam());
-            boolean isHome = String.valueOf(m.getSupportTeam()).equals(schedule.getHomeTeamCode());
-            boolean isAway = String.valueOf(m.getSupportTeam()).equals(schedule.getAwayTeamCode());
-            log.info("[GameAnalysis] filter 결과 → isHome={}, isAway={}", isHome, isAway);
-            if (!(isHome || isAway)) continue;
+            try {
+                log.info("[GameAnalysis][execute] 회원 검토 → 이름={}, 응원팀={}", m.getName(), m.getSupportTeam());
+                boolean isHome = String.valueOf(m.getSupportTeam()).equals(schedule.getHomeTeamCode());
+                boolean isAway = String.valueOf(m.getSupportTeam()).equals(schedule.getAwayTeamCode());
+                log.info("[GameAnalysis] filter 결과 → isHome={}, isAway={}", isHome, isAway);
+                if (!(isHome || isAway)) continue;
 
-            String[] parts = analysis.split("\n\n", 2);
-            String winFactors = parts[0];
-            String loseFactors = parts.length > 1 ? parts[1] : "";
+                String[] parts = analysis.split("\n\n", 2);
+                String winFactors = parts[0];
+                String loseFactors = parts.length > 1 ? parts[1] : "";
 
-            String formatted = String.format(
-                    "오늘 경기 요약이 도착했어요!\n" +
-                            "⚾️ <b>%s %d : %d %s</b>\n" +
-                            "AWAY: %s, HOME: %s\n\n" +
-                            "%s\n\n" +
-                            "🏆 <b>1. 승리팀(%s) 요인</b>\n%s\n\n" +
-                            "💔 <b>2. 패배팀(%s) 요인</b>\n%s",
-                    Team.getDisplayNameByCode(schedule.getAwayTeamCode()), awayScore,
-                    homeScore, Team.getDisplayNameByCode(schedule.getHomeTeamCode()),
-                    Team.getDisplayNameByCode(schedule.getAwayTeamCode()), Team.getDisplayNameByCode(schedule.getHomeTeamCode()),
-                    formattedScoreBoard,
-                    winner, winFactors,
-                    loser, loseFactors
-            );
+                String formatted = String.format(
+                        "오늘 경기 요약이 도착했어요!\n" +
+                                "⚾️ <b>%s %d : %d %s</b>\n" +
+                                "AWAY: %s, HOME: %s\n\n" +
+                                "%s\n\n" +
+                                "🏆 <b>1. 승리팀(%s) 요인</b>\n%s\n\n" +
+                                "💔 <b>2. 패배팀(%s) 요인</b>\n%s",
+                        Team.getDisplayNameByCode(schedule.getAwayTeamCode()), awayScore,
+                        homeScore, Team.getDisplayNameByCode(schedule.getHomeTeamCode()),
+                        Team.getDisplayNameByCode(schedule.getAwayTeamCode()), Team.getDisplayNameByCode(schedule.getHomeTeamCode()),
+                        formattedScoreBoard,
+                        winner, winFactors,
+                        loser, loseFactors
+                );
 
-            log.info("[GameAnalysis][execute] 경기 분석 전송 시도 → gameId={}, member={}, preview=[{}]...",
-                    gameId, m.getName(), formatted.substring(0, Math.min(40, formatted.length())));
-            telegramService.sendPersonalMessage(m.getTelegramId(), m.getName(), formatted);
-            log.info("[GameAnalysis][execute] 경기 분석 전송 완료 → chatId={}", m.getTelegramId());
+                log.info("[GameAnalysis][execute] 경기 분석 전송 시도 → gameId={}, member={}, preview=[{}]...",
+                        gameId, m.getName(), formatted.substring(0, Math.min(40, formatted.length())));
+                telegramService.sendPersonalMessage(m.getTelegramId(), m.getName(), formatted);
+                log.info("[GameAnalysis][execute] 경기 분석 전송 완료 → chatId={}", m.getTelegramId());
+            } catch (Exception e) {
+                log.error("[GameAnalysis][execute] 멤버 전송 실패 → member={}, error={}", m.getName(), e.getMessage());
+            }
         }
 
         log.info("[GameAnalysis][execute] GameAnalysis END → gameId={} #####", gameId);

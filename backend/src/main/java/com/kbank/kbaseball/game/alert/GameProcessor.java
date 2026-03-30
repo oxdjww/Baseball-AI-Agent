@@ -64,6 +64,11 @@ public class GameProcessor {
             return;
         }
 
+        if (info == null) {
+            log.warn("[GameProcessor][process] gameInfo null (API 재시도 소진) → skip, gameId={}", gameId);
+            return;
+        }
+
         if ("STARTED".equals(info.getStatusCode())) {
             // 진행 중: 역전 알림 처리
             leadNotifier.notify(schedule, members, info);

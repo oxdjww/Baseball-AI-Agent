@@ -34,7 +34,12 @@ public class TelegramService {
                 .parseMode(ParseMode.HTML)
                 .build();
 
-        telegramClient.sendMessage(msg);
+        try {
+            telegramClient.sendMessage(msg);
+        } catch (BotBlockedException e) {
+            log.warn("[TelegramService][sendPersonalMessage] 봇 차단 감지 → chatId={}, 알림 전체 비활성화", chatId);
+            memberRepository.disableAllNotificationsByTelegramId(chatId);
+        }
     }
 
     /**

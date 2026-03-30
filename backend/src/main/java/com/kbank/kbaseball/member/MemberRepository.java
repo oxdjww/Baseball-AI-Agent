@@ -20,6 +20,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query("DELETE FROM Member m WHERE m.id = :id")
     void deleteByLongId(@Param("id") Long id);
 
+    List<Member> findAllByOrderByIdAsc();
+
     List<Member> findByNotifyRealTimeAlertTrue();
 
     List<Member> findBySupportTeamAndNotifyRainAlertTrue(Team supportTeam);
@@ -38,4 +40,12 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Transactional
     @Query("UPDATE Member m SET m.deleted = true WHERE m.id = :id")
     void softDeleteById(@Param("id") Long id);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Member m SET m.notifyGameAnalysis = false, " +
+           "m.notifyRainAlert = false, " +
+           "m.notifyRealTimeAlert = false " +
+           "WHERE m.telegramId = :telegramId AND m.deleted = false")
+    void disableAllNotificationsByTelegramId(@Param("telegramId") String telegramId);
 }
