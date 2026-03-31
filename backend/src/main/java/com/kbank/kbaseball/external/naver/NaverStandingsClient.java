@@ -1,7 +1,6 @@
 package com.kbank.kbaseball.external.naver;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.kbank.kbaseball.domain.team.Team;
 import com.kbank.kbaseball.external.naver.dto.KboStandingsResult;
 import com.kbank.kbaseball.external.naver.dto.KboTeamStandingDto;
 import lombok.RequiredArgsConstructor;
@@ -48,10 +47,9 @@ public class NaverStandingsClient {
 
         List<KboTeamStandingDto> standings = new ArrayList<>();
         for (JsonNode t : teams) {
-            String naverTeamName = t.path("teamName").asText();
             standings.add(new KboTeamStandingDto(
-                    Team.fromNaverTeamName(naverTeamName),
-                    naverTeamName,
+                    t.path("teamId").asText(),
+                    t.path("teamName").asText(),
                     t.path("ranking").asInt(),
                     t.path("winGameCount").asInt(),
                     t.path("drawnGameCount").asInt(),

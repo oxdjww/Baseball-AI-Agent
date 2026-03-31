@@ -204,4 +204,56 @@ class StandingsAdjusterTest {
         assertThat(kt.losses()).isEqualTo(7);
         assertThat(kt.draws()).isEqualTo(0);
     }
+
+    // --- 실제 teamId 기반 코드 검증 (2026-03-31 버그 재현) ---
+
+    /**
+     * LG(away) vs KIA(home, teamId="HT") — 오늘 실제 버그 시나리오.
+     * NaverStandingsClient가 teamId를 사용하면 standings에 "HT"가 저장되고,
+     * 게임 API도 homeTeamCode="HT"를 반환하므로 매칭이 성공해야 한다.
+     * 이전 bugfix(52e7a07)는 teamName 기반으로 바꿔 "HT" 매칭 실패 → LG 패배 미반영.
+     */
+    @Test
+    void legacyTeamId_htCode_lgLossApplied() {
+        KboStandingsResult raw = new KboStandingsResult("REGULAR_SEASON", List.of(
+                standing("HT", "KIA", 1, 2, 0, 0, 0.0),
+                standing("LG", "LG",  2, 0, 0, 2, 1.5)
+        ));
+        // LG(away) 2:7 KIA(home) — LG 패배
+        KboStandingsResult result = adjuster.applyGameResult(raw, endedGame("LG", "HT", 2, 7));
+
+        KboTeamStandingDto lg = findByCode(result, "LG");
+        KboTeamStandingDto ht = findByCode(result, "HT");
+
+        assertThat(lg.losses()).isEqualTo(3);   // 0→3패 (오늘 패배 반영)
+        assertThat(lg.wins()).isEqualTo(0);
+        assertThat(ht.wins()).isEqualTo(3);     // 2→3승
+        assertThat(ht.losses()).isEqualTo(0);
+    }
+
+    @Test
+    void legacyTeamId_obCode_obWinApplied() {
+        // 두산(teamId="OB") vs 삼성(teamId="SS") — 레거시 코드 전 팀 커버리지
+        KboStandingsResult raw = new KboStandingsResult("REGULAR_SEASON", List.of(
+                standing("SS", "삼성", 1, 2, 0, 0, 0.0),
+                standing("OB", "두산", 2, 1, 0, 1, 0.5)
+        ));
+        KboStandingsResult result = adjuster.applyGameResult(raw, endedGame("OB", "SS", 5, 3));
+
+        assertThat(findByCode(result, "OB").wins()).isEqualTo(2);
+        assertThat(findByCode(result, "SS").losses()).isEqualTo(1);
+    }
+
+    @Test
+    void legacyTeamId_skCode_skLossApplied() {
+        // SSG(teamId="SK") — SK 코드 정상 매칭
+        KboStandingsResult raw = new KboStandingsResult("REGULAR_SEASON", List.of(
+                standing("LG", "LG",  1, 3, 0, 0, 0.0),
+                standing("SK", "SSG", 2, 2, 0, 1, 0.5)
+        ));
+        KboStandingsResult result = adjuster.applyGameResult(raw, endedGame("SK", "LG", 1, 5));
+
+        assertThat(findByCode(result, "SK").losses()).isEqualTo(2);
+        assertThat(findByCode(result, "LG").wins()).isEqualTo(4);
+    }
 }

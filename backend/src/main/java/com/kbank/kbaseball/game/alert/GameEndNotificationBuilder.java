@@ -60,17 +60,17 @@ public class GameEndNotificationBuilder {
                 if (myIndex > 0) {
                     KboTeamStandingDto above = standings.get(myIndex - 1);
                     String gap = formatGap(Math.abs(myTeam.gameBehind() - above.gameBehind()));
-                    sb.append(String.format("• %d위 %s (%s ↑)\n", above.rank(), above.teamName(), gap));
+                    sb.append(String.format("• %d위 %s (%s ↑)\n", above.rank(), Team.getDisplayNameByCode(above.teamCode()), gap));
                 }
 
                 sb.append(String.format("• <b>%d위 %s (%d승 %d무 %d패)</b>\n",
-                        myTeam.rank(), myTeam.teamName(),
+                        myTeam.rank(), myTeamName,
                         myTeam.wins(), myTeam.draws(), myTeam.losses()));
 
                 if (myIndex < standings.size() - 1) {
                     KboTeamStandingDto below = standings.get(myIndex + 1);
                     String gap = formatGap(Math.abs(myTeam.gameBehind() - below.gameBehind()));
-                    sb.append(String.format("• %d위 %s (%s ↓)\n", below.rank(), below.teamName(), gap));
+                    sb.append(String.format("• %d위 %s (%s ↓)\n", below.rank(), Team.getDisplayNameByCode(below.teamCode()), gap));
                 }
             }
         }

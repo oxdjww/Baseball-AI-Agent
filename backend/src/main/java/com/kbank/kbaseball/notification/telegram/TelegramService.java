@@ -69,6 +69,7 @@ public class TelegramService {
         }
 
         String rawText = template.format(args);
+        log.info("[TelegramService][sendMessageToTeam] teamCode={}, 발송 내용:\n{}", teamCode, rawText);
         supporters.forEach(m -> sendPersonalMessage(m.getTelegramId(), m.getName(), rawText));
     }
 
