@@ -429,6 +429,10 @@ flowchart TD
 | 문서 | 내용 |
 |------|------|
 | [StandingsAdjuster](docs/standings-adjuster.md) | 경기 종료 순위 즉시 보정 로직 — 승차 공식, 재정렬 기준, 엣지 케이스 |
+| [Lazy Registration & Bot Defense](docs/lazy-registration.md) | 봇 공격 대응 3층 방어 — Nginx rate limit, Honeypot, Redis TTL 기반 지연 DB 삽입 |
+| [Redis State Design](docs/redis-state-design.md) | GETSET/SETNX 원자성 활용 — 역전 감지, 경기 종료 중복 방지, 서버 재시작 내성 |
+| [Schema Evolution](docs/schema-evolution.md) | Flyway V1~V5 스키마 진화 — 복합 PK 실수 교정, soft delete, partial unique index 전환 |
+| [Monitoring AOP Design](docs/monitoring-aop.md) | AOP 관제 설계 결정사항 — CGLIB callDepth 이중 발화 방지, notification 패키지 제외 이유 |
 
 ---
 
