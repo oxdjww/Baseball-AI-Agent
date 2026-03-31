@@ -190,6 +190,65 @@ class RainAlertTaskletTest {
         verify(telegramService, times(1)).sendPersonalMessage(eq("t2"), eq("Bob"), anyString());
     }
 
+    // ── 응원 링크 포함 여부 검증 ──────────────────────────────────────────
+
+    @Test
+    void 고척_경기장_응원링크_포함() {
+        ScheduledGameDto gocheck = ScheduledGameDto.builder()
+                .gameId("GAME-GOCHECK")
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .stadium("고척")
+                .build();
+        when(rainfallService.getRainfallByTeam(eq("LG"), any())).thenReturn(15.0);
+
+        tasklet.executeForGame(gocheck, alertTime, 3, 10.0);
+
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        verify(telegramService, atLeastOnce())
+                .sendPersonalMessage(anyString(), anyString(), captor.capture());
+        assertThat(captor.getValue()).contains("https://m.sports.naver.com/game/GAME-GOCHECK/cheer");
+        assertThat(captor.getValue()).contains("경기 응원하러 가기!");
+    }
+
+    @Test
+    void 비_걱정없음_응원링크_포함() {
+        when(rainfallService.getRainfallByTeam(eq("LG"), any())).thenReturn(2.0);
+
+        tasklet.executeForGame(lgVsLt, alertTime, 3, 10.0);
+
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        verify(telegramService, atLeastOnce())
+                .sendPersonalMessage(anyString(), anyString(), captor.capture());
+        assertThat(captor.getValue()).contains("https://m.sports.naver.com/game/20260315LTLG02026/cheer");
+    }
+
+    @Test
+    void 우천취소_가능성_응원링크_포함() {
+        when(rainfallService.getRainfallByTeam(eq("LG"), any())).thenReturn(12.0);
+        when(sportsApiClient.fetchCancelInfoFromGameInfo(lgVsLt.getGameId())).thenReturn(false);
+
+        tasklet.executeForGame(lgVsLt, alertTime, 1, 5.0);
+
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        verify(telegramService, atLeastOnce())
+                .sendPersonalMessage(anyString(), anyString(), captor.capture());
+        assertThat(captor.getValue()).contains("https://m.sports.naver.com/game/20260315LTLG02026/cheer");
+    }
+
+    @Test
+    void 우천취소_확정_응원링크_미포함() {
+        when(rainfallService.getRainfallByTeam(eq("LG"), any())).thenReturn(12.0);
+        when(sportsApiClient.fetchCancelInfoFromGameInfo(lgVsLt.getGameId())).thenReturn(true);
+
+        tasklet.executeForGame(lgVsLt, alertTime, 3, 10.0);
+
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+        verify(telegramService, atLeastOnce())
+                .sendPersonalMessage(anyString(), anyString(), captor.capture());
+        assertThat(captor.getValue()).doesNotContain("/cheer");
+    }
+
     // ── hoursBefore 파라미터 전달 검증 ────────────────────────────────────
 
     @Test

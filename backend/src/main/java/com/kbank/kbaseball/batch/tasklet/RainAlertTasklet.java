@@ -68,6 +68,7 @@ public class RainAlertTasklet implements Tasklet {
         // 4) 메시지 텍스트 생성
         String vs = String.format("[%s vs %s]", awayTeam.getDisplayName(), homeTeam.getDisplayName());
         String text;
+        boolean gameConfirmedCanceled = false;
 
         if (game.getStadium().equals("고척")) {
             log.info("[RainAlertTasklet][executeForGame] 고척 경기장(실내) 관전 권장 메시지 생성");
@@ -83,6 +84,7 @@ public class RainAlertTasklet implements Tasklet {
             );
         } else {
             if (sportsApiClient.fetchCancelInfoFromGameInfo(game.getGameId())) {
+                gameConfirmedCanceled = true;
                 log.info("[RainAlertTasklet][executeForGame] rain >= thresholdMm ({} ≥ {}), 우천취소 확정 메시지 생성", rain, thresholdMm);
                 text = String.format(
                         "<b>%s %d시간 전 강수량 %.1fmm\n경기가 우천취소 되었어요!</b> ☔️",
@@ -96,12 +98,16 @@ public class RainAlertTasklet implements Tasklet {
                 );
             }
         }
-        log.info("[RainAlertTasklet][executeForGame] Generated text: {}", text);
+
+        final String finalText = gameConfirmedCanceled
+                ? text
+                : text + "\n\n경기 응원하러 가기! ⬇️\nhttps://m.sports.naver.com/game/" + game.getGameId() + "/cheer";
+        log.info("[RainAlertTasklet][executeForGame] Generated text: {}", finalText);
 
         // 5) 홈팀 멤버에게 전송
         homeMembers.forEach(m -> {
             try {
-                telegramService.sendPersonalMessage(m.getTelegramId(), m.getName(), text);
+                telegramService.sendPersonalMessage(m.getTelegramId(), m.getName(), finalText);
                 log.info("[RainAlertTasklet][executeForGame] → 우천 알림(홈) sent to {} ({})", m.getName(), m.getTelegramId());
             } catch (Exception e) {
                 log.error("[RainAlertTasklet][executeForGame] → {}님(홈)에게 우천 알림 전송 실패: {}", m.getName(), e.getMessage(), e);
@@ -111,7 +117,7 @@ public class RainAlertTasklet implements Tasklet {
         // 6) 어웨이팀 멤버에게도 전송
         awayMembers.forEach(m -> {
             try {
-                telegramService.sendPersonalMessage(m.getTelegramId(), m.getName(), text);
+                telegramService.sendPersonalMessage(m.getTelegramId(), m.getName(), finalText);
                 log.info("[RainAlertTasklet][executeForGame] →  우천 알림(어웨이) sent to {} ({})", m.getName(), m.getTelegramId());
             } catch (Exception e) {
                 log.error("[RainAlertTasklet][executeForGame] → {}님(어웨이)에게 우천 알림 전송 실패: {}", m.getName(), e.getMessage(), e);
