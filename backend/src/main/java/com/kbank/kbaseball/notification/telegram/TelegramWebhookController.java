@@ -25,6 +25,8 @@ public class TelegramWebhookController {
 
         Map<String, Object> from = (Map<String, Object>) message.get("from");
         Map<String, Object> chat = (Map<String, Object>) message.get("chat");
+        if (from == null || chat == null) return;
+
         String text = (String) message.getOrDefault("text", "");
 
         log.info("[TelegramWebhookController][onUpdate] text={}", text);

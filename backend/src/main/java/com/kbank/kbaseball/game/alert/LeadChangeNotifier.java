@@ -32,7 +32,31 @@ public class LeadChangeNotifier {
         String leaderKey = GAME_LEADER_KEY_PREFIX + gameId;
         String rawPrev = redis.opsForValue().getAndSet(leaderKey, currLeader);
         redis.expire(leaderKey, Duration.ofHours(24)); // 하루 지난 키 자동 정리
-        String prevLeader = (rawPrev == null) ? "NONE" : rawPrev;
+
+        if (rawPrev == null) {
+            // 최초 폴링: 역전이 아닌 선취점이므로 별도 알림 발송
+            if (!"NONE".equals(currLeader)) {
+                log.info("[LeadChangeNotifier][notify] 선취점 감지 → gameId={}, leader={}", gameId, currLeader);
+                members.forEach(m -> {
+                    try {
+                        if (m.getTelegramId() != null) {
+                            String text = formatter.formatFirstScore(m, info, currLeader);
+                            telegram.sendPersonalMessage(m.getTelegramId(), m.getName(), text);
+                            log.info("[LeadChangeNotifier][notify] 선취점 알림 전송 → member={} gameId={}",
+                                    m.getName(), gameId);
+                        } else {
+                            log.info("[LeadChangeNotifier][notify] Telegram ID is NULL. Message not sent. member={}", m.getName());
+                        }
+                    } catch (Exception e) {
+                        log.error("[LeadChangeNotifier][notify] 선취점 알림 에러 → member={} : {}",
+                                m.getName(), e.getMessage(), e);
+                    }
+                });
+            }
+            return;
+        }
+
+        String prevLeader = rawPrev;
         log.info("[LeadChangeNotifier][notify] 리더 변경 체크 → gameId={}, {} → {}",
                 gameId, prevLeader, currLeader);
 

@@ -75,6 +75,9 @@ public class LeadChangeNotifierTest {
 
     @Test
     void notify_whenLeaderChanges_sendsToAllSupporters() {
+        // 이전에 LT(어웨이)가 리드 → 현재 LG(홈)가 역전
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn("LT");
+
         RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
                 .statusCode("STARTED")
                 .homeTeamCode("LG")
@@ -147,6 +150,9 @@ public class LeadChangeNotifierTest {
 
     @Test
     void notify_memberWithNullTelegramId_skipsTelegram() {
+        // LT가 리드 → LG가 역전, telegramId=null인 팬은 formatter 호출 후 telegram 미발송
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn("LT");
+
         Member nullTelegramFan = Member.builder()
                 .id(3L)
                 .name("Carol")
@@ -164,17 +170,17 @@ public class LeadChangeNotifierTest {
                 .awayScore(2)
                 .build();
 
-        // 첫 호출: prevLeader="NONE", currLeader="LG" → 변경 감지
         notifier.notify(schedule, List.of(nullTelegramFan), info);
 
-        // formatter는 호출되지만 telegram은 호출되지 않아야 함
+        // 역전 경로: formatter는 호출되지만 telegram은 호출되지 않아야 함
         verify(formatter, times(1)).formatLeadChange(eq(nullTelegramFan), any(), anyString(), anyString());
         verify(telegram, never()).sendPersonalMessage(any(), any(), any());
     }
 
     @Test
     void notify_exceptionInFormatter_otherMemberStillNotified() {
-        // homeFan의 formatter 호출 시 예외 발생
+        // LT가 리드 → LG가 역전. homeFan의 formatter 호출 시 예외 발생
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn("LT");
         when(formatter.formatLeadChange(eq(homeFan), any(), anyString(), anyString()))
                 .thenThrow(new RuntimeException("포맷 실패"));
 
@@ -205,6 +211,77 @@ public class LeadChangeNotifierTest {
 
         verify(telegram, never()).sendPersonalMessage(any(), any(), any());
         verify(formatter, never()).formatLeadChange(any(), any(), any(), any());
+    }
+
+    @Test
+    void notify_firstCallWithScoringTeam_sendsFirstScoreNotification() {
+        // 최초 폴링(Redis=null), 홈팀 LG가 선취점 → 모든 팬에게 formatFirstScore 호출
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn(null);
+        when(formatter.formatFirstScore(eq(homeFan), any(), eq("LG")))
+                .thenReturn("[선취점] Alice 메시지");
+        when(formatter.formatFirstScore(eq(awayFan), any(), eq("LG")))
+                .thenReturn("[선취점] Bob 메시지");
+
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .homeScore(1)
+                .awayScore(0)
+                .build();
+
+        notifier.notify(schedule, List.of(homeFan, awayFan), info);
+
+        verify(formatter, times(1)).formatFirstScore(eq(homeFan), any(), eq("LG"));
+        verify(formatter, times(1)).formatFirstScore(eq(awayFan), any(), eq("LG"));
+        verify(telegram, times(1)).sendPersonalMessage("t1", "Alice", "[선취점] Alice 메시지");
+        verify(telegram, times(1)).sendPersonalMessage("t2", "Bob", "[선취점] Bob 메시지");
+    }
+
+    @Test
+    void notify_firstCallWithNullTelegramId_skipsMessage() {
+        // 최초 폴링 + 선취점 상황에서 telegramId=null 팬은 알림 발송 생략
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn(null);
+
+        Member nullTelegramFan = Member.builder()
+                .id(3L)
+                .name("Carol")
+                .supportTeam(Team.LG)
+                .telegramId(null)
+                .build();
+
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .homeScore(1)
+                .awayScore(0)
+                .build();
+
+        notifier.notify(schedule, List.of(nullTelegramFan), info);
+
+        verify(formatter, never()).formatFirstScore(any(), any(), any());
+        verify(telegram, never()).sendPersonalMessage(any(), any(), any());
+    }
+
+    @Test
+    void notify_firstCallExceptionInFormatter_otherMemberStillNotified() {
+        // 최초 폴링 + 선취점: homeFan에서 예외 → awayFan은 정상 발송
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn(null);
+        when(formatter.formatFirstScore(eq(homeFan), any(), anyString()))
+                .thenThrow(new RuntimeException("포맷 실패"));
+        when(formatter.formatFirstScore(eq(awayFan), any(), anyString()))
+                .thenReturn("[선취점] Bob 메시지");
+
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .homeScore(1)
+                .awayScore(0)
+                .build();
+
+        notifier.notify(schedule, List.of(homeFan, awayFan), info);
+
+        verify(telegram, never()).sendPersonalMessage(eq("t1"), any(), any());
+        verify(telegram, times(1)).sendPersonalMessage("t2", "Bob", "[선취점] Bob 메시지");
     }
 
     @Test

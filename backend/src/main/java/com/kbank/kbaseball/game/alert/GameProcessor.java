@@ -92,7 +92,7 @@ public class GameProcessor {
                 String homeTeamName = Team.getDisplayNameByCode(homeTeamCode);
 
                 if (info.getIsCanceled()) {
-                    // 우천취소: 각 팀 팬에게 알림
+                    // 우천취소: 각 팀 팬에게 알림 후 종료
                     String oppForAwayFans = gameMessageFormatter.withParticle(homeTeamName, "과", "와");
                     String oppForHomeFans = gameMessageFormatter.withParticle(awayTeamName, "과", "와");
 
@@ -108,6 +108,7 @@ public class GameProcessor {
                             oppForHomeFans,
                             awayTeamName
                     );
+                    return;
                 }
 
                 boolean aiEnabled = featureToggleService.isEnabled(FeatureToggleService.AI_ANALYSIS);

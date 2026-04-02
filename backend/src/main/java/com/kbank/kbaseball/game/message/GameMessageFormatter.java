@@ -83,6 +83,32 @@ public class GameMessageFormatter {
         }
     }
 
+    public String formatFirstScore(Member m, RealtimeGameInfoDto info, String currLeader) {
+        String leadingTeamName = Team.getDisplayNameByCode(currLeader);
+        String myTeamName = m.getSupportTeam().getDisplayName();
+        boolean isMyTeam = myTeamName.equals(leadingTeamName);
+
+        if (isMyTeam) {
+            return String.format(
+                    "[<b>%s</b> VS <b>%s</b>] 선취점! 🎉\n" +
+                    "응원하는 <b>%s</b>이(가) 먼저 득점했어요!\n" +
+                    "%s, 현재 스코어 <b>%d:%d</b>",
+                    info.getAwayTeamName(), info.getHomeTeamName(),
+                    leadingTeamName, info.getInning(),
+                    info.getAwayScore(), info.getHomeScore()
+            );
+        } else {
+            return String.format(
+                    "[<b>%s</b> VS <b>%s</b>] 상대팀이 선취점을 냈어요 😤\n" +
+                    "<b>%s</b>이(가) 먼저 득점!\n" +
+                    "%s, 현재 스코어 <b>%d:%d</b> — 역전을 기원합니다!",
+                    info.getAwayTeamName(), info.getHomeTeamName(),
+                    leadingTeamName, info.getInning(),
+                    info.getAwayScore(), info.getHomeScore()
+            );
+        }
+    }
+
     public String formatScoreboard(JsonNode scoreBoard) {
         final int TEAM_COL = 4;   // "AWAY" / "HOME" 길이
         final int TEAM_GAP = 2;   // 팀라벨-이닝 사이 간격
