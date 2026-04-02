@@ -71,7 +71,7 @@ public class LeadChangeNotifier {
                         log.info("[LeadChangeNotifier][notify] 역전알림 전송 → member={} gameId={}",
                                 m.getName(), gameId);
                     } else {
-                        log.info("LeadChangeNotifier][notify] Telegram ID is NULL. Message not sent. member={}", m.getName());
+                        log.info("[LeadChangeNotifier][notify] Telegram ID is NULL. Message not sent. member={}", m.getName());
                     }
                 } catch (Exception e) {
                     log.error("[LeadChangeNotifier][notify] 역전알림 에러 → member={} : {}",
