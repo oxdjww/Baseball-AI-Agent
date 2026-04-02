@@ -3,8 +3,10 @@ package com.kbank.kbaseball.notification.telegram;
 import com.kbank.kbaseball.member.Member;
 import com.kbank.kbaseball.member.MemberRepository;
 import com.kbank.kbaseball.domain.team.Team;
+import com.kbank.kbaseball.notification.log.MessageLogService;
 import com.kbank.kbaseball.notification.telegram.dto.ParseMode;
 import com.kbank.kbaseball.notification.telegram.dto.TelegramMessage;
+import com.kbank.kbaseball.notification.telegram.dto.TelegramSendResult;
 import com.kbank.kbaseball.template.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ public class TelegramService {
 
     private final MemberRepository memberRepository;
     private final TelegramNotificationClient telegramClient;
+    private final MessageLogService messageLogService;
 
     /**
      * 1) 단건 전송(개인화 포함)
@@ -34,9 +37,10 @@ public class TelegramService {
                 .parseMode(ParseMode.HTML)
                 .build();
 
-        try {
-            telegramClient.sendMessage(msg);
-        } catch (BotBlockedException e) {
+        TelegramSendResult result = telegramClient.sendMessage(msg);
+        messageLogService.save(chatId, personalized, result);
+
+        if (result.botBlocked()) {
             log.warn("[TelegramService][sendPersonalMessage] 봇 차단 감지 → chatId={}, 알림 전체 비활성화", chatId);
             memberRepository.disableAllNotificationsByTelegramId(chatId);
         }
@@ -91,13 +95,15 @@ public class TelegramService {
         sendAnnouncementToAllMembers(message);
     }
 
-    /** 관리자/운영용: 접두어 없이 그대로 보냄 */
+    /** 관리자/운영용: 접두어 없이 그대로 보냄. 봇 차단 처리 없음. */
     public void sendPlainMessage(String chatId, String rawText) {
         TelegramMessage msg = TelegramMessage.builder()
                 .chatId(chatId)
                 .text(rawText)
                 .parseMode(ParseMode.HTML)
                 .build();
-        telegramClient.sendMessage(msg);
+
+        TelegramSendResult result = telegramClient.sendMessage(msg);
+        messageLogService.save(chatId, rawText, result);
     }
 }

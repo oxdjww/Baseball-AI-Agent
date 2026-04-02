@@ -11,6 +11,7 @@ import com.kbank.kbaseball.member.Member;
 import com.kbank.kbaseball.member.MemberRepository;
 import com.kbank.kbaseball.notification.telegram.TelegramNotificationClient;
 import com.kbank.kbaseball.notification.telegram.dto.TelegramMessage;
+import com.kbank.kbaseball.notification.telegram.dto.TelegramSendResult;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,6 +100,7 @@ class VerificationTest {
         when(stringRedisTemplate.opsForValue()).thenReturn(valueOps);
         when(valueOps.setIfAbsent(anyString(), anyString(), any(Duration.class))).thenReturn(true);
         when(valueOps.get(anyString())).thenReturn(null);
+        when(telegramNotificationClient.sendMessage(any())).thenReturn(TelegramSendResult.success(200));
 
         memberRepository.deleteAll();
     }
