@@ -16,7 +16,7 @@ public class MessageSendLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tsl_seq")
-    @SequenceGenerator(name = "tsl_seq", sequenceName = "telegram_send_log_id_seq", allocationSize = 50)
+    @SequenceGenerator(name = "tsl_seq", sequenceName = "telegram_send_log_id_seq", allocationSize = 1)
     private Long id;
 
     @Column(name = "telegram_id", nullable = false, length = 64)
