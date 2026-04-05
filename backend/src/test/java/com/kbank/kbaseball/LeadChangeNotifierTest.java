@@ -285,6 +285,76 @@ public class LeadChangeNotifierTest {
     }
 
     @Test
+    void notify_prevNoneToTeam_sendsFirstScoreNotReversal() {
+        // 핵심 버그 시나리오: 0:0에서 첫 득점 → rawPrev="NONE", currLeader="LG"
+        // formatLeadChange가 아닌 formatFirstScore가 호출되어야 함
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn("NONE");
+        when(formatter.formatFirstScore(eq(homeFan), any(), eq("LG")))
+                .thenReturn("[선취점] Alice 메시지");
+        when(formatter.formatFirstScore(eq(awayFan), any(), eq("LG")))
+                .thenReturn("[선취점] Bob 메시지");
+
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .homeScore(1)
+                .awayScore(0)
+                .build();
+
+        notifier.notify(schedule, List.of(homeFan, awayFan), info);
+
+        verify(formatter, times(1)).formatFirstScore(eq(homeFan), any(), eq("LG"));
+        verify(formatter, times(1)).formatFirstScore(eq(awayFan), any(), eq("LG"));
+        verify(formatter, never()).formatLeadChange(any(), any(), any(), any());
+        verify(telegram, times(1)).sendPersonalMessage("t1", "Alice", "[선취점] Alice 메시지");
+        verify(telegram, times(1)).sendPersonalMessage("t2", "Bob", "[선취점] Bob 메시지");
+    }
+
+    @Test
+    void notify_tiedThenRetakeLead_sendsLeadChangeNotFirstScore() {
+        // 동점 후 재역전: rawPrev="NONE" (2:2에서), 현재 3:2 → formatLeadChange 호출
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn("NONE");
+        when(formatter.formatLeadChange(eq(homeFan), any(), eq("NONE"), eq("LG")))
+                .thenReturn("[역전] Alice 메시지");
+        when(formatter.formatLeadChange(eq(awayFan), any(), eq("NONE"), eq("LG")))
+                .thenReturn("[역전] Bob 메시지");
+
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .homeScore(3)
+                .awayScore(2)
+                .build();
+
+        notifier.notify(schedule, List.of(homeFan, awayFan), info);
+
+        verify(formatter, never()).formatFirstScore(any(), any(), any());
+        verify(formatter, times(1)).formatLeadChange(eq(homeFan), any(), eq("NONE"), eq("LG"));
+        verify(formatter, times(1)).formatLeadChange(eq(awayFan), any(), eq("NONE"), eq("LG"));
+        verify(telegram, times(1)).sendPersonalMessage("t1", "Alice", "[역전] Alice 메시지");
+        verify(telegram, times(1)).sendPersonalMessage("t2", "Bob", "[역전] Bob 메시지");
+    }
+
+    @Test
+    void notify_prevNoneToNone_sendsNoMessage() {
+        // 0:0 유지 → rawPrev="NONE", currLeader="NONE" → 변화 없음
+        when(valueOps.getAndSet(anyString(), anyString())).thenReturn("NONE");
+
+        RealtimeGameInfoDto info = RealtimeGameInfoDto.builder()
+                .homeTeamCode("LG")
+                .awayTeamCode("LT")
+                .homeScore(0)
+                .awayScore(0)
+                .build();
+
+        notifier.notify(schedule, List.of(homeFan, awayFan), info);
+
+        verify(telegram, never()).sendPersonalMessage(any(), any(), any());
+        verify(formatter, never()).formatLeadChange(any(), any(), any(), any());
+        verify(formatter, never()).formatFirstScore(any(), any(), any());
+    }
+
+    @Test
     void notify_prevAwayToHome_sendsReversal() {
         // 이전에 LT(어웨이)가 리드 → 현재 LG(홈)가 역전
         when(valueOps.getAndSet(anyString(), anyString())).thenReturn("LT");

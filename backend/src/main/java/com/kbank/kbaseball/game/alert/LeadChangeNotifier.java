@@ -62,23 +62,33 @@ public class LeadChangeNotifier {
 
         // 리더가 바뀌었을 때만 알림
         if (!currLeader.equals(prevLeader)) {
+            boolean isFirstScore = "NONE".equals(prevLeader)
+                    && Math.min(info.getHomeScore(), info.getAwayScore()) == 0;
+
             members.forEach(m -> {
                 try {
-                    // 내팀, 상대팀 역전시 양팀 팬에게 모두 알림
-                    String text = formatter.formatLeadChange(m, info, prevLeader, currLeader);
+                    String text;
+                    if (isFirstScore) {
+                        // 0:0에서 첫 득점 = 선취점
+                        text = formatter.formatFirstScore(m, info, currLeader);
+                    } else {
+                        // 실제 역전 또는 동점
+                        text = formatter.formatLeadChange(m, info, prevLeader, currLeader);
+                    }
                     if (m.getTelegramId() != null) {
                         telegram.sendPersonalMessage(m.getTelegramId(), m.getName(), text);
-                        log.info("[LeadChangeNotifier][notify] 역전알림 전송 → member={} gameId={}",
-                                m.getName(), gameId);
+                        log.info("[LeadChangeNotifier][notify] {}알림 전송 → member={} gameId={}",
+                                isFirstScore ? "선취점" : "역전", m.getName(), gameId);
                     } else {
                         log.info("[LeadChangeNotifier][notify] Telegram ID is NULL. Message not sent. member={}", m.getName());
                     }
                 } catch (Exception e) {
-                    log.error("[LeadChangeNotifier][notify] 역전알림 에러 → member={} : {}",
-                            m.getName(), e.getMessage(), e);
+                    log.error("[LeadChangeNotifier][notify] {}알림 에러 → member={} : {}",
+                            isFirstScore ? "선취점" : "역전", m.getName(), e.getMessage(), e);
                 }
             });
-            log.info("[LeadChangeNotifier][notify] 역전알림 완료 → gameId={}", gameId);
+            log.info("[LeadChangeNotifier][notify] {}알림 완료 → gameId={}",
+                    isFirstScore ? "선취점" : "역전", gameId);
         } else {
             log.info("[LeadChangeNotifier][notify] 리더 변경 없음 → gameId={} (leader={})",
                     gameId, currLeader);
