@@ -89,7 +89,8 @@ public class KmaWeatherClient {
                 .toUriString();
 
         log.info("[KmaWeatherClient][fetchRawCsv] KMA 요청 URL: {}", url);
-        return rest.getForObject(url, String.class);
+        String result = rest.getForObject(url, String.class);
+        return result != null ? result : "";
     }
 
     private String[] splitCsv(String line) {

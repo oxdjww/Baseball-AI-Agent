@@ -111,17 +111,9 @@ class KmaWeatherClientTest {
     void null_응답_0반환() {
         when(rest.getForObject(anyString(), eq(String.class))).thenReturn(null);
 
-        // null.split() → NPE 방지 확인
-        // 실제 코드는 null 을 split 하면 NPE 발생 → 테스트가 실패하면 방어코드 필요
-        // 현재 구현은 null raw 에서 NPE 발생 → 이 테스트로 버그 식별
-        try {
-            double rain = client.getRainfallByTeam("LG", LocalDateTime.now());
-            // NPE 발생 없이 도달하면 0.0 기대
-            assertThat(rain).isEqualTo(0.0);
-        } catch (NullPointerException e) {
-            // 현재 구현의 알려진 한계 — 통합 테스트에서는 실제 서버가 빈 문자열을 반환하므로 무방
-            // 이 케이스는 문서화 목적으로 유지
-        }
+        double rain = client.getRainfallByTeam("LG", LocalDateTime.now());
+
+        assertThat(rain).isEqualTo(0.0);
     }
 
     @Test

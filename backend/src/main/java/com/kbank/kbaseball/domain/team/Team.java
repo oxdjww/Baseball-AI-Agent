@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 @Slf4j
 public enum Team {
-    HH("한화", 156, "#FF6B00", "한화"),
+    HH("한화", 133, "#FF6B00", "한화"),
     LG("LG",   109, "#C30452", "LG"),
     OB("두산", 109, "#131230", "두산"),
     WO("키움", 109, "#820024", "키움"),
@@ -16,7 +16,7 @@ public enum Team {
     KT("KT",   119, "#000000", "KT"),
     SK("SSG",  112, "#CE0E2D", "SSG"),
     NC("NC",   218, "#315288", "NC"),
-    SS("삼성", 224, "#1428A0", "삼성");
+    SS("삼성", 143, "#1428A0", "삼성");
 
     private final String displayName;
     private final int stn;           // 기상청 지점번호

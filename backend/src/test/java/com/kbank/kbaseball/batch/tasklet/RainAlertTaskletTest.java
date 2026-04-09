@@ -7,6 +7,7 @@ import com.kbank.kbaseball.external.naver.NaverSportsClient;
 import com.kbank.kbaseball.external.naver.dto.ScheduledGameDto;
 import com.kbank.kbaseball.member.Member;
 import com.kbank.kbaseball.member.MemberService;
+import com.kbank.kbaseball.notification.history.NotificationHistoryService;
 import com.kbank.kbaseball.notification.telegram.TelegramService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * RainAlertTasklet 우천 알림 분기 로직 단위 테스트
- * KmaWeatherClient, MemberService, TelegramService, NaverSportsClient 완전 격리
+ * KmaWeatherClient, MemberService, TelegramService, NotificationHistoryService 완전 격리
+ * 취소 알림 로직은 RainCancelPollingScheduler가 담당 (SSOT) — tasklet은 강수량 전달만 수행
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -36,8 +38,9 @@ class RainAlertTaskletTest {
     @Mock KmaWeatherClient rainfallService;
     @Mock MemberService memberService;
     @Mock TelegramService telegramService;
-    @Mock NaverSportsClient sportsApiClient;
+    @Mock NaverSportsClient sportsApiClient;  // 테스트 환경 호환성 유지 (실제 주입 안 됨)
     @Mock FeatureToggleService featureToggleService;
+    @Mock NotificationHistoryService notificationHistoryService;
 
     @InjectMocks
     RainAlertTasklet tasklet;
@@ -63,6 +66,30 @@ class RainAlertTaskletTest {
         when(memberService.findBySupportTeamAndNotifyRainAlertTrue(Team.LG)).thenReturn(List.of(homeFan));
         when(memberService.findBySupportTeamAndNotifyRainAlertTrue(Team.LT)).thenReturn(List.of(awayFan));
         when(featureToggleService.isEnabled(FeatureToggleService.RAIN_ALERT)).thenReturn(true);
+        // 기본적으로 취소 이력 없음
+        when(notificationHistoryService.isCancelAlreadySent(lgVsLt.getGameId())).thenReturn(false);
+    }
+
+    // ── 취소 이력 DB 체크 ─────────────────────────────────────────────────
+
+    @Test
+    void 강수량_알림_발송_전_DB_취소이력_있으면_스킵() {
+        when(notificationHistoryService.isCancelAlreadySent(lgVsLt.getGameId())).thenReturn(true);
+        when(rainfallService.getRainfallByTeam(eq("LG"), any())).thenReturn(2.0);
+
+        tasklet.executeForGame(lgVsLt, alertTime, 3, 10.0);
+
+        verify(telegramService, never()).sendPersonalMessage(any(), any(), any());
+    }
+
+    @Test
+    void 강수량_알림_발송_전_DB_취소이력_없으면_정상_발송() {
+        when(notificationHistoryService.isCancelAlreadySent(lgVsLt.getGameId())).thenReturn(false);
+        when(rainfallService.getRainfallByTeam(eq("LG"), any())).thenReturn(2.0);
+
+        tasklet.executeForGame(lgVsLt, alertTime, 3, 10.0);
+
+        verify(telegramService, atLeastOnce()).sendPersonalMessage(anyString(), anyString(), anyString());
     }
 
     // ── 메시지 분기 테스트 ────────────────────────────────────────────────
@@ -76,6 +103,7 @@ class RainAlertTaskletTest {
                 .stadium("고척")
                 .build();
         when(rainfallService.getRainfallByTeam(eq("LG"), any())).thenReturn(15.0);
+        when(notificationHistoryService.isCancelAlreadySent(gocheck.getGameId())).thenReturn(false);
 
         tasklet.executeForGame(gocheck, alertTime, 3, 10.0);
 
@@ -102,22 +130,8 @@ class RainAlertTaskletTest {
     }
 
     @Test
-    void 강수량_임계값_이상_취소확정_우천취소_메시지_전송() {
+    void 강수량_임계값_이상_취소_가능성_메시지_전송() {
         when(rainfallService.getRainfallByTeam(eq("LG"), any())).thenReturn(12.0);
-        when(sportsApiClient.fetchCancelInfoFromGameInfo(lgVsLt.getGameId())).thenReturn(true);
-
-        tasklet.executeForGame(lgVsLt, alertTime, 3, 10.0);
-
-        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(telegramService, atLeastOnce())
-                .sendPersonalMessage(anyString(), anyString(), captor.capture());
-        assertThat(captor.getValue()).contains("경기가 우천취소 되었어요");
-    }
-
-    @Test
-    void 강수량_임계값_이상_취소미확정_가능성_메시지_전송() {
-        when(rainfallService.getRainfallByTeam(eq("LG"), any())).thenReturn(12.0);
-        when(sportsApiClient.fetchCancelInfoFromGameInfo(lgVsLt.getGameId())).thenReturn(false);
 
         tasklet.executeForGame(lgVsLt, alertTime, 1, 5.0);
 
@@ -136,7 +150,6 @@ class RainAlertTaskletTest {
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         verify(telegramService, atLeastOnce())
                 .sendPersonalMessage(anyString(), anyString(), captor.capture());
-        // [롯데 vs LG] 형식 포함 여부
         assertThat(captor.getValue()).contains("롯데").contains("LG");
     }
 
@@ -179,14 +192,11 @@ class RainAlertTaskletTest {
     @Test
     void telegram_예외_발생시_다른_팬_영향_없음() {
         when(rainfallService.getRainfallByTeam(eq("LG"), any())).thenReturn(2.0);
-        // homeFan에게 전송 시 예외 발생
         doThrow(new RuntimeException("텔레그램 전송 실패"))
                 .when(telegramService).sendPersonalMessage(eq("t1"), eq("Alice"), anyString());
 
-        // 예외가 전파되지 않아야 하고
         tasklet.executeForGame(lgVsLt, alertTime, 1, 5.0);
 
-        // awayFan(Bob)은 정상 수신
         verify(telegramService, times(1)).sendPersonalMessage(eq("t2"), eq("Bob"), anyString());
     }
 
@@ -201,6 +211,7 @@ class RainAlertTaskletTest {
                 .stadium("고척")
                 .build();
         when(rainfallService.getRainfallByTeam(eq("LG"), any())).thenReturn(15.0);
+        when(notificationHistoryService.isCancelAlreadySent(gocheck.getGameId())).thenReturn(false);
 
         tasklet.executeForGame(gocheck, alertTime, 3, 10.0);
 
@@ -226,7 +237,6 @@ class RainAlertTaskletTest {
     @Test
     void 우천취소_가능성_응원링크_포함() {
         when(rainfallService.getRainfallByTeam(eq("LG"), any())).thenReturn(12.0);
-        when(sportsApiClient.fetchCancelInfoFromGameInfo(lgVsLt.getGameId())).thenReturn(false);
 
         tasklet.executeForGame(lgVsLt, alertTime, 1, 5.0);
 
@@ -234,19 +244,6 @@ class RainAlertTaskletTest {
         verify(telegramService, atLeastOnce())
                 .sendPersonalMessage(anyString(), anyString(), captor.capture());
         assertThat(captor.getValue()).contains("https://m.sports.naver.com/game/20260315LTLG02026/cheer");
-    }
-
-    @Test
-    void 우천취소_확정_응원링크_미포함() {
-        when(rainfallService.getRainfallByTeam(eq("LG"), any())).thenReturn(12.0);
-        when(sportsApiClient.fetchCancelInfoFromGameInfo(lgVsLt.getGameId())).thenReturn(true);
-
-        tasklet.executeForGame(lgVsLt, alertTime, 3, 10.0);
-
-        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-        verify(telegramService, atLeastOnce())
-                .sendPersonalMessage(anyString(), anyString(), captor.capture());
-        assertThat(captor.getValue()).doesNotContain("/cheer");
     }
 
     // ── hoursBefore 파라미터 전달 검증 ────────────────────────────────────

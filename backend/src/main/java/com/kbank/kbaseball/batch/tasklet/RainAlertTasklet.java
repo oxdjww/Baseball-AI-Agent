@@ -4,8 +4,8 @@ import com.kbank.kbaseball.member.Member;
 import com.kbank.kbaseball.member.MemberService;
 import com.kbank.kbaseball.config.featuretoggle.FeatureToggleService;
 import com.kbank.kbaseball.domain.team.Team;
-import com.kbank.kbaseball.external.naver.NaverSportsClient;
 import com.kbank.kbaseball.external.naver.dto.ScheduledGameDto;
+import com.kbank.kbaseball.notification.history.NotificationHistoryService;
 import com.kbank.kbaseball.notification.telegram.TelegramService;
 import com.kbank.kbaseball.external.kma.KmaWeatherClient;
 import lombok.NonNull;
@@ -27,8 +27,8 @@ public class RainAlertTasklet implements Tasklet {
     private final KmaWeatherClient rainfallService;
     private final MemberService memberService;
     private final TelegramService telegramService;
-    private final NaverSportsClient sportsApiClient;
     private final FeatureToggleService featureToggleService;
+    private final NotificationHistoryService notificationHistoryService;
 
     @Override
     public RepeatStatus execute(@NonNull StepContribution contribution,
@@ -65,10 +65,15 @@ public class RainAlertTasklet implements Tasklet {
                 homeMembers.size(), homeTeam.getDisplayName(),
                 awayMembers.size(), awayTeam.getDisplayName());
 
-        // 4) 메시지 텍스트 생성
+        // 4) 발송 전 취소 이력 DB 확인 (폴링 스케줄러가 이미 취소 알림을 보냈으면 강수량 알림 생략)
+        if (notificationHistoryService.isCancelAlreadySent(game.getGameId())) {
+            log.info("[RainAlertTasklet][executeForGame] 취소된 경기, 강수량 알림 생략: gameId={}", game.getGameId());
+            return;
+        }
+
+        // 5) 메시지 텍스트 생성 (강수량 정보 전달에만 집중, 취소 판단은 폴링 스케줄러가 담당)
         String vs = String.format("[%s vs %s]", awayTeam.getDisplayName(), homeTeam.getDisplayName());
         String text;
-        boolean gameConfirmedCanceled = false;
 
         if (game.getStadium().equals("고척")) {
             log.info("[RainAlertTasklet][executeForGame] 고척 경기장(실내) 관전 권장 메시지 생성");
@@ -83,28 +88,17 @@ public class RainAlertTasklet implements Tasklet {
                     vs, hoursBefore, rain
             );
         } else {
-            if (sportsApiClient.fetchCancelInfoFromGameInfo(game.getGameId())) {
-                gameConfirmedCanceled = true;
-                log.info("[RainAlertTasklet][executeForGame] rain >= thresholdMm ({} ≥ {}), 우천취소 확정 메시지 생성", rain, thresholdMm);
-                text = String.format(
-                        "<b>%s %d시간 전 강수량 %.1fmm\n경기가 우천취소 되었어요!</b> ☔️",
-                        vs, hoursBefore, rain
-                );
-            } else {
-                log.info("[RainAlertTasklet][executeForGame] rain >= thresholdMm ({} ≥ {}), 우천취소 가능성 메시지 생성", rain, thresholdMm);
-                text = String.format(
-                        "<b>%s %d시간 전 강수량 %.1fmm\n우천취소 가능성 있어요!</b> ☔️",
-                        vs, hoursBefore, rain
-                );
-            }
+            log.info("[RainAlertTasklet][executeForGame] rain >= thresholdMm ({} ≥ {}), 우천취소 가능성 메시지 생성", rain, thresholdMm);
+            text = String.format(
+                    "<b>%s %d시간 전 강수량 %.1fmm\n우천취소 가능성 있어요!</b> ☔️",
+                    vs, hoursBefore, rain
+            );
         }
 
-        final String finalText = gameConfirmedCanceled
-                ? text
-                : text + "\n\n경기 응원하러 가기! ⬇️\nhttps://m.sports.naver.com/game/" + game.getGameId() + "/cheer";
+        final String finalText = text + "\n\n경기 응원하러 가기! ⬇️\nhttps://m.sports.naver.com/game/" + game.getGameId() + "/cheer";
         log.info("[RainAlertTasklet][executeForGame] Generated text: {}", finalText);
 
-        // 5) 홈팀 멤버에게 전송
+        // 6) 홈팀 멤버에게 전송
         homeMembers.forEach(m -> {
             try {
                 telegramService.sendPersonalMessage(m.getTelegramId(), m.getName(), finalText);
@@ -114,7 +108,7 @@ public class RainAlertTasklet implements Tasklet {
             }
         });
 
-        // 6) 어웨이팀 멤버에게도 전송
+        // 7) 어웨이팀 멤버에게도 전송
         awayMembers.forEach(m -> {
             try {
                 telegramService.sendPersonalMessage(m.getTelegramId(), m.getName(), finalText);
